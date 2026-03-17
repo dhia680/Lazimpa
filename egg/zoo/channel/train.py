@@ -226,7 +226,7 @@ def dump(game, n_features, device, gs_mode, epoch):
 
     #print(f'Mean accuracy wrt uniform distribution is {unif_acc}')
     #print(f'Mean accuracy wrt powerlaw distribution is {powerlaw_acc}')
-    print(json.dumps({'powerlaw': powerlaw_acc, 'unif': unif_acc}))
+    print(json.dumps({'powerlaw': float(powerlaw_acc), 'unif': float(unif_acc)}))
 
     return acc_vec, messages
 
@@ -261,7 +261,7 @@ def dump_impatient(game, n_features, device, gs_mode,epoch):
     #print(f'Mean accuracy wrt uniform distribution is {unif_acc}')
     #print(f'Mean accuracy wrt powerlaw distribution is {powerlaw_acc}')
     if epoch%25==0:
-        print(json.dumps({'powerlaw': powerlaw_acc, 'unif': unif_acc}))
+        print(json.dumps({'powerlaw': float(powerlaw_acc), 'unif': float(unif_acc)}))
 
     return acc_vec, messages
 
@@ -381,6 +381,12 @@ def main(params):
         for x in messages:
             x = x.cpu().numpy()
             all_messages.append(x)
+
+        ##### DHIA
+        max_len = max(len(m) for m in all_messages)
+        all_messages = np.array([np.pad(m, (0, max_len - len(m)), constant_values=0) for m in all_messages])
+        ##### DHIA
+
         all_messages = np.asarray(all_messages)
 
         if epoch%50==0:
