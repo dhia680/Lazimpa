@@ -154,7 +154,7 @@ def dump_impatient(game, n_features, device, gs_mode,save_dir):
 
     #print(f'Mean accuracy wrt uniform distribution is {unif_acc}')
     #print(f'Mean accuracy wrt powerlaw distribution is {powerlaw_acc}')
-    print(json.dumps({'powerlaw': powerlaw_acc, 'unif': unif_acc}))
+    print(json.dumps({'powerlaw': float(powerlaw_acc), 'unif': float(unif_acc)}))
 
     return acc_vec, messages
 
@@ -189,7 +189,7 @@ def position_test(game, n_features, device, gs_mode,pos_min=0,pos_max=1):
 
     print(f'Mean accuracy wrt uniform distribution is {unif_acc}')
     print(f'Mean accuracy wrt powerlaw distribution is {powerlaw_acc}')
-    print(json.dumps({'powerlaw': powerlaw_acc, 'unif': unif_acc}))
+    print(json.dumps({'powerlaw': float(powerlaw_acc), 'unif': float(unif_acc)}))
 
     return acc, messages
 
