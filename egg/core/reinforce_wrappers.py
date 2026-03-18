@@ -12,7 +12,7 @@ from collections import defaultdict
 import numpy as np
 
 
-from .transformer import TransformerEncoder, TransformerDecoder
+from .transformer import TransformerEncoder, TransformerDecoder, TransformerBaseEncoder
 from .rnn import RnnEncoder, RnnEncoderImpatient
 from .util import find_lengths
 
@@ -1105,6 +1105,101 @@ class TransformerReceiverDeterministic(nn.Module):
         entropy = logits
 
         return agent_output, logits, entropy
+
+
+class TransformerReceiverImpatient(nn.Module):
+    """
+    Impatient Listener using Transformer architecture.
+    Makes predictions at each position k based on symbols [0...k] using causal masking.
+
+    Analogous to RnnReceiverImpatient but uses self-attention instead of recurrent processing.
+    """
+
+    def __init__(self, agent, vocab_size, max_len, embed_dim, num_heads, hidden_size,
+                 num_layers, n_features, positional_emb=True, causal=True):
+        super(TransformerReceiverImpatient, self).__init__()
+        self.agent = agent
+        self.max_len = max_len
+        self.n_features = n_features
+        self.causal = causal
+
+        # Linear layer to project embeddings to output predictions
+        self.hidden_to_output = nn.Linear(embed_dim, n_features)
+
+        # Use TransformerBaseEncoder directly to get all position embeddings
+        self.encoder = TransformerBaseEncoder(
+            vocab_size=vocab_size,
+            max_len=max_len,
+            embed_dim=embed_dim,
+            num_heads=num_heads,
+            num_layers=num_layers,
+            hidden_size=hidden_size,
+            positional_embedding=positional_emb
+        )
+
+    def forward(self, message, input=None, lengths=None):
+        """
+        Forward pass producing predictions at each message position.
+
+        Args:
+            message: [batch_size, max_len] - Token IDs
+            input: Optional receiver input (unused in standard setup)
+            lengths: [batch_size] - Actual message lengths (optional)
+
+        Returns:
+            sequence: [batch_size, max_len, n_features] - Predictions at each position
+            logits: [batch_size, max_len] - Log-probabilities of sampled actions
+            entropy: [batch_size, max_len] - Entropy at each position
+        """
+        if lengths is None:
+            lengths = find_lengths(message)
+
+        batch_size = message.size(0)
+        max_len = message.size(1)
+
+        # Create padding mask
+        len_indicators = torch.arange(max_len).expand((batch_size, max_len)).to(lengths.device)
+        lengths_expanded = lengths.unsqueeze(1)
+        padding_mask = len_indicators >= lengths_expanded
+
+        # Create causal attention mask if required
+        if self.causal:
+            attn_mask = torch.triu(torch.ones(max_len, max_len).byte(), diagonal=1).to(message.device)
+            attn_mask = attn_mask.float().masked_fill(attn_mask == 1, float('-inf'))
+        else:
+            attn_mask = None
+
+        # Get embeddings for all positions [batch_size, max_len, embed_dim]
+        transformed = self.encoder(message, key_padding_mask=padding_mask, attn_mask=attn_mask)
+
+        # Make predictions at each position
+        sequence = []
+        logits = []
+        entropy = []
+
+        for step in range(transformed.size(1)):
+            h_t = transformed[:, step, :]  # [batch_size, embed_dim]
+
+            # Project to output space
+            step_logits = F.log_softmax(self.hidden_to_output(h_t), dim=1)
+            distr = Categorical(logits=step_logits)
+            entropy.append(distr.entropy())
+
+            # Sample or take argmax
+            if self.training:
+                x = distr.sample()
+            else:
+                x = step_logits.argmax(dim=1)
+
+            logits.append(distr.log_prob(x))
+            sequence.append(step_logits)
+
+        # Stack and permute to batch-first format
+        sequence = torch.stack(sequence).permute(1, 0, 2)  # [B, T, n_features]
+        logits = torch.stack(logits).permute(1, 0)  # [B, T]
+        entropy = torch.stack(entropy).permute(1, 0)  # [B, T]
+
+        return sequence, logits, entropy
 
 
 class TransformerSenderReinforce(nn.Module):

@@ -12,7 +12,7 @@ import egg.core as core
 from egg.core import EarlyStopperAccuracy
 from egg.zoo.channel.features import OneHotLoader, UniformLoader
 from egg.zoo.channel.archs import Sender, Receiver
-from egg.core.reinforce_wrappers import RnnReceiverImpatient
+from egg.core.reinforce_wrappers import RnnReceiverImpatient, TransformerReceiverImpatient
 from egg.core.reinforce_wrappers import SenderImpatientReceiverRnnReinforce
 from egg.core.util import dump_sender_receiver_impatient
 
@@ -111,15 +111,16 @@ def loss_impatient(sender_input, _message, message_length, _receiver_input, rece
     """
 
     # 1. len_mask selects only the symbols before EOS-token
-    to_onehot=torch.eye(_message.size(1)).to("cuda")
-    to_onehot=torch.cat((to_onehot,torch.zeros((1,_message.size(1))).to("cuda")),0)
+    device = _message.device
+    to_onehot=torch.eye(_message.size(1)).to(device)
+    to_onehot=torch.cat((to_onehot,torch.zeros((1,_message.size(1))).to(device)),0)
     len_mask=[]
     for i in range(message_length.size(0)):
       len_mask.append(to_onehot[message_length[i]])
     len_mask=torch.stack(len_mask,dim=0)
 
     len_mask=torch.cumsum(len_mask,dim=1)
-    len_mask=torch.ones(len_mask.size()).to("cuda").add_(-len_mask)
+    len_mask=torch.ones(len_mask.size()).to(device).add_(-len_mask)
 
     # 2. coef applies weights on each position. By default it is equal
     coef=(1/message_length.to(float)).repeat(_message.size(1),1).transpose(1,0) # useless ?
@@ -132,8 +133,8 @@ def loss_impatient(sender_input, _message, message_length, _receiver_input, rece
 
 
     # 3. crible_acc gathers accuracy for each input/position, crible_loss gathers losses for each input/position
-    crible_acc=torch.zeros(size=_message.size()).to("cuda")
-    crible_loss=torch.zeros(size=_message.size()).to("cuda")
+    crible_acc=torch.zeros(size=_message.size()).to(device)
+    crible_loss=torch.zeros(size=_message.size()).to(device)
 
     for i in range(receiver_output.size(1)):
       crible_acc[:,i].add_((receiver_output[:,i,:].argmax(dim=1) == sender_input.argmax(dim=1)).detach().float())
@@ -322,9 +323,28 @@ def main(params):
                                    force_eos=force_eos)
     if opts.receiver_cell == 'transformer':
         receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding)
-        receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len,
-                                                         opts.receiver_embedding, opts.receiver_num_heads, opts.receiver_hidden,
-                                                         opts.receiver_num_layers, causal=opts.causal_receiver)
+
+        if opts.impatient:
+            # Transformer with impatient listener
+            receiver = TransformerReceiverImpatient(
+                agent=receiver,
+                vocab_size=opts.vocab_size,
+                max_len=opts.max_len,
+                embed_dim=opts.receiver_embedding,
+                num_heads=opts.receiver_num_heads,
+                hidden_size=opts.receiver_hidden,
+                num_layers=opts.receiver_num_layers,
+                n_features=opts.n_features,
+                causal=opts.causal_receiver
+            )
+        else:
+            # Standard transformer receiver (non-impatient)
+            receiver = core.TransformerReceiverDeterministic(
+                receiver, opts.vocab_size, opts.max_len,
+                opts.receiver_embedding, opts.receiver_num_heads,
+                opts.receiver_hidden, opts.receiver_num_layers,
+                causal=opts.causal_receiver
+            )
     else:
 
         receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)

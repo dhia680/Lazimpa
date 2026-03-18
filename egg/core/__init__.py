@@ -16,7 +16,7 @@ from .reinforce_wrappers import (ReinforceWrapper, SymbolGameReinforce,
                                  ReinforceDeterministicWrapper, RnnReceiverReinforce,
                                  RnnSenderReinforce, SenderReceiverRnnReinforce,
                                  RnnReceiverDeterministic, TransformerReceiverDeterministic,
-                                 TransformerSenderReinforce)
+                                 TransformerReceiverImpatient, TransformerSenderReinforce)
 
 from .rnn import RnnEncoder
 
@@ -50,6 +50,7 @@ __all__ = [
     'close',
     'SymbolReceiverWrapper',
     'TransformerReceiverDeterministic',
+    'TransformerReceiverImpatient',
     'TransformerSenderReinforce',
     'RnnEncoder'
 ]
