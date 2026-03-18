@@ -22,11 +22,24 @@ def generate_command_args(experiment_name, config, common_params, arch_config, s
     # Build argument list
     args = []
 
+    # Fields to exclude (metadata, not training params)
+    exclude_fields = ['description', 'architecture']
+
+    # Flags that use action='store_true' (no value needed, just include flag if True)
+    store_true_flags = ['causal_sender', 'causal_receiver', 'no_cuda']
+
     # Add all parameters
     for key, value in params.items():
+        if key in exclude_fields:
+            continue
         if isinstance(value, bool):
-            if value:
-                args.append(f"--{key}")
+            if key in store_true_flags:
+                # For action='store_true' flags, only include if True
+                if value:
+                    args.append(f"--{key}")
+            else:
+                # For type=bool flags (impatient, reg, no_cuda), always pass value
+                args.append(f"--{key}={1 if value else 0}")
         else:
             args.append(f"--{key}={value}")
 
@@ -44,11 +57,15 @@ def run_experiment(exp_name, seed, args, gpu_id, total_runs, current_run):
     env = os.environ.copy()
     env['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
 
-    # Create log directory
-    log_dir = Path(f'results/{exp_name}/seed_{seed}/logs')
-    log_dir.mkdir(parents=True, exist_ok=True)
+    # Create all required directories
+    base_dir = Path(f'results/{exp_name}/seed_{seed}')
+    (base_dir / 'logs').mkdir(parents=True, exist_ok=True)
+    (base_dir / 'sender').mkdir(parents=True, exist_ok=True)
+    (base_dir / 'receiver').mkdir(parents=True, exist_ok=True)
+    (base_dir / 'messages').mkdir(parents=True, exist_ok=True)
+    (base_dir / 'accuracy').mkdir(parents=True, exist_ok=True)
 
-    log_file = log_dir / 'training.log'
+    log_file = base_dir / 'logs' / 'training.log'
 
     # Print progress
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

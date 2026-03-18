@@ -70,7 +70,14 @@ def _get_params(arg_parser: argparse.ArgumentParser, params: List[str]) -> argpa
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     # just to avoid confusion and be consistent
     args.no_cuda = not args.cuda
-    args.device = "cuda" if args.cuda else "cpu"
+
+    # Device priority: CUDA > MPS > CPU
+    if args.cuda:
+        args.device = "cuda"
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available() and not args.no_cuda:
+        args.device = "mps"
+    else:
+        args.device = "cpu"
 
     return args
 
