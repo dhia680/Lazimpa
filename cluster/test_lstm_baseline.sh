@@ -5,10 +5,10 @@
 #$ -pe smp 2                     # 2 CPU cores
 #$ -q gpu                        # Run on the GPU cluster
 #$ -l gpu_card=1                 # 1 GPU card
-#$ -N lazimpa_test               # Job name
+#$ -N lstm_baseline_test         # Job name
 #$ -l h_rt=00:30:00              # Max 30 minutes for small test
-#$ -o logs/test_transformer.out
-#$ -e logs/test_transformer.err
+#$ -o logs/test_lstm_baseline.out
+#$ -e logs/test_lstm_baseline.err
 
 # ============================================================
 # Load Conda Environment
@@ -22,7 +22,7 @@ export CUDA_VISIBLE_DEVICES=0
 
 # Print job info
 echo "========================================================================"
-echo "LAZIMPA - SMALL TRANSFORMER TEST"
+echo "LAZIMPA - LSTM BASELINE SMALL TEST"
 echo "========================================================================"
 echo "Job ID: $JOB_ID"
 echo "Started on $(hostname) at $(date)"
@@ -30,7 +30,6 @@ echo "Working directory: $PWD"
 echo "Python: $(which python)"
 echo "PyTorch version: $(python -c 'import torch; print(torch.__version__)')"
 echo "CUDA available: $(python -c 'import torch; print(torch.cuda.is_available())')"
-echo "GPU: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A")')"
 echo "========================================================================"
 echo ""
 
@@ -38,12 +37,12 @@ echo ""
 cd $HOME/Lazimpa
 
 # Create output directories
-mkdir -p results/test_transformer/{sender,receiver,messages,accuracy,logs}
+mkdir -p results/test_lstm_baseline/{sender,receiver,messages,accuracy,logs}
 
-# Run small test: 100 features, 10 epochs
-echo "Running small Transformer test..."
+# Run small test: LSTM BASELINE (original paper architecture, no impatient, no reg)
+echo "Running LSTM BASELINE test (original paper settings)..."
 python -m egg.zoo.channel.train \
-  --dir_save=results/test_transformer \
+  --dir_save=results/test_lstm_baseline \
   --n_features=100 \
   --vocab_size=20 \
   --max_len=10 \
@@ -56,26 +55,22 @@ python -m egg.zoo.channel.train \
   --force_eos=0 \
   --sender_entropy_coeff=0.1 \
   --receiver_entropy_coeff=0.1 \
-  --sender_cell=transformer \
-  --receiver_cell=transformer \
-  --sender_hidden=256 \
-  --receiver_hidden=256 \
-  --sender_embedding=128 \
-  --receiver_embedding=128 \
-  --sender_num_layers=2 \
-  --receiver_num_layers=2 \
-  --sender_num_heads=8 \
-  --receiver_num_heads=8 \
-  --causal_sender \
-  --causal_receiver \
-  --sender_generate_style=in-place \
+  --sender_cell=lstm \
+  --receiver_cell=lstm \
+  --sender_hidden=250 \
+  --receiver_hidden=600 \
+  --sender_embedding=50 \
+  --receiver_embedding=50 \
+  --sender_num_layers=1 \
+  --receiver_num_layers=1 \
   --length_cost=0.0 \
   --random_seed=42
-  # Note: impatient and reg default to False, so we don't pass them for baseline
+
+# Note: impatient and reg are NOT passed, so they default to False (baseline mode)
 
 echo ""
 echo "========================================================================"
-echo "SMALL TEST COMPLETE"
+echo "LSTM BASELINE TEST COMPLETE"
 echo "Finished at $(date)"
-echo "Results saved to: results/test_transformer/"
+echo "Results saved to: results/test_lstm_baseline/"
 echo "========================================================================"

@@ -5,10 +5,10 @@
 #$ -pe smp 2                     # 2 CPU cores
 #$ -q gpu                        # Run on the GPU cluster
 #$ -l gpu_card=1                 # 1 GPU card
-#$ -N lazimpa_test               # Job name
+#$ -N tf_baseline_test           # Job name
 #$ -l h_rt=00:30:00              # Max 30 minutes for small test
-#$ -o logs/test_transformer.out
-#$ -e logs/test_transformer.err
+#$ -o logs/test_tf_baseline.out
+#$ -e logs/test_tf_baseline.err
 
 # ============================================================
 # Load Conda Environment
@@ -22,7 +22,7 @@ export CUDA_VISIBLE_DEVICES=0
 
 # Print job info
 echo "========================================================================"
-echo "LAZIMPA - SMALL TRANSFORMER TEST"
+echo "LAZIMPA - TRANSFORMER BASELINE SMALL TEST"
 echo "========================================================================"
 echo "Job ID: $JOB_ID"
 echo "Started on $(hostname) at $(date)"
@@ -30,7 +30,6 @@ echo "Working directory: $PWD"
 echo "Python: $(which python)"
 echo "PyTorch version: $(python -c 'import torch; print(torch.__version__)')"
 echo "CUDA available: $(python -c 'import torch; print(torch.cuda.is_available())')"
-echo "GPU: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A")')"
 echo "========================================================================"
 echo ""
 
@@ -38,12 +37,12 @@ echo ""
 cd $HOME/Lazimpa
 
 # Create output directories
-mkdir -p results/test_transformer/{sender,receiver,messages,accuracy,logs}
+mkdir -p results/test_transformer_baseline/{sender,receiver,messages,accuracy,logs}
 
-# Run small test: 100 features, 10 epochs
-echo "Running small Transformer test..."
+# Run small test: TRANSFORMER BASELINE (no impatient, no reg)
+echo "Running Transformer BASELINE test (no impatient, no reg)..."
 python -m egg.zoo.channel.train \
-  --dir_save=results/test_transformer \
+  --dir_save=results/test_transformer_baseline \
   --n_features=100 \
   --vocab_size=20 \
   --max_len=10 \
@@ -71,11 +70,12 @@ python -m egg.zoo.channel.train \
   --sender_generate_style=in-place \
   --length_cost=0.0 \
   --random_seed=42
-  # Note: impatient and reg default to False, so we don't pass them for baseline
+
+# Note: impatient and reg are NOT passed, so they default to False (baseline mode)
 
 echo ""
 echo "========================================================================"
-echo "SMALL TEST COMPLETE"
+echo "TRANSFORMER BASELINE TEST COMPLETE"
 echo "Finished at $(date)"
-echo "Results saved to: results/test_transformer/"
+echo "Results saved to: results/test_transformer_baseline/"
 echo "========================================================================"
