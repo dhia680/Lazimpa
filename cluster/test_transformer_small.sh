@@ -14,7 +14,7 @@
 # Load Conda Environment
 # ============================================================
 module load conda
-source activate Lazimpa
+conda activate lazimpa
 
 # Set environment variables
 export OMP_NUM_THREADS=$NSLOTS

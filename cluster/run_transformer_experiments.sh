@@ -11,10 +11,10 @@
 #$ -e logs/transformer_all.err
 
 # ============================================================
-# Load Conda Environment: Lazimpa
+# Load Conda Environment: lazimpa
 # ============================================================
 module load conda
-source activate Lazimpa
+conda activate lazimpa
 
 # Set environment variables
 export OMP_NUM_THREADS=$NSLOTS

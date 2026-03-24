@@ -12,10 +12,10 @@
 #$ -e logs/transformer_$TASK_ID.err
 
 # ============================================================
-# Load Conda Environment: Lazimpa
+# Load Conda Environment: lazimpa
 # ============================================================
 module load conda
-source activate Lazimpa
+conda activate lazimpa
 
 # Set environment
 export OMP_NUM_THREADS=$NSLOTS
