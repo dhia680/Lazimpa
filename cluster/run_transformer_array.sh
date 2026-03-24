@@ -7,14 +7,22 @@
 #$ -l gpu_card=1                 # 1 GPU card per job
 #$ -t 1-20                       # Array job: 20 tasks (2 transformer experiments × 10 seeds)
 #$ -N lazimpa_tf_array           # Job name
-#$ -l h_rt=6:00:00               # Max 6 hours per job
+#$ -l h_rt=8:00:00               # Max 8 hours per job
 #$ -o logs/transformer_$TASK_ID.out
 #$ -e logs/transformer_$TASK_ID.err
 
-# Load required modules
-module load python/3.9
-module load cuda/11.8
-module load pytorch/2.0
+# ============================================================
+# OPTION 1: Using Conda Environment (RECOMMENDED)
+# ============================================================
+module load conda
+source activate lazimpa
+
+# ============================================================
+# OPTION 2: Using System Modules (uncomment if no conda)
+# ============================================================
+# module load python/3.10
+# module load cuda/11.8
+# module load pytorch/2.1
 
 # Set environment
 export OMP_NUM_THREADS=$NSLOTS
@@ -26,6 +34,8 @@ echo "LAZIMPA TRANSFORMER ARRAY - Task $SGE_TASK_ID of $SGE_TASK_LAST"
 echo "========================================================================"
 echo "Job ID: $JOB_ID.$SGE_TASK_ID"
 echo "Started on $(hostname) at $(date)"
+echo "Python: $(which python)"
+echo "CUDA available: $(python -c 'import torch; print(torch.cuda.is_available())')"
 echo "========================================================================"
 echo ""
 
@@ -58,6 +68,13 @@ mkdir -p results/${EXPERIMENT}/seed_${SEED}/receiver
 mkdir -p results/${EXPERIMENT}/seed_${SEED}/messages
 mkdir -p results/${EXPERIMENT}/seed_${SEED}/accuracy
 
+# Set impatient/reg/length_cost based on experiment type
+if [ "$EXPERIMENT" == "transformer_lazimpa" ]; then
+    IMPATIENT_FLAG="--impatient=1 --reg=1 --length_cost=0.01"
+else
+    IMPATIENT_FLAG="--impatient=0 --reg=0 --length_cost=0.0"
+fi
+
 # Run the specific experiment with this seed directly
 python -m egg.zoo.channel.train \
   --n_features=1000 \
@@ -85,7 +102,7 @@ python -m egg.zoo.channel.train \
   --causal_sender \
   --causal_receiver \
   --sender_generate_style=in-place \
-  $(if [ "$EXPERIMENT" == "transformer_lazimpa" ]; then echo "--impatient=1 --reg=1 --length_cost=0.01"; else echo "--impatient=0 --reg=0 --length_cost=0.0"; fi) \
+  $IMPATIENT_FLAG \
   --random_seed=${SEED} \
   --dir_save=results/${EXPERIMENT}/seed_${SEED} \
   --name=${EXPERIMENT}_seed${SEED}

@@ -6,15 +6,20 @@
 #$ -q gpu                        # Run on the GPU cluster
 #$ -l gpu_card=1                 # 1 GPU card
 #$ -N lazimpa_transformer        # Job name
-#$ -l h_rt=48:00:00              # Max runtime 48 hours
+#$ -l h_rt=72:00:00              # Max runtime 72 hours
 
-# Load required modules (adjust based on your cluster's available modules)
-module load python/3.9           # Or whatever Python version is available
-module load cuda/11.8            # Or appropriate CUDA version
-module load pytorch/2.0          # Or load PyTorch module if available
+# ============================================================
+# OPTION 1: Using Conda Environment (RECOMMENDED)
+# ============================================================
+module load conda
+source activate lazimpa
 
-# If PyTorch isn't a module, activate your conda environment:
-# source activate lazimpa_env
+# ============================================================
+# OPTION 2: Using System Modules (uncomment if no conda)
+# ============================================================
+# module load python/3.10
+# module load cuda/11.8
+# module load pytorch/2.1
 
 # Set environment variables
 export OMP_NUM_THREADS=$NSLOTS
@@ -28,6 +33,9 @@ echo "Job ID: $JOB_ID"
 echo "Started on $(hostname) at $(date)"
 echo "Working directory: $PWD"
 echo "GPU devices: $CUDA_VISIBLE_DEVICES"
+echo "Python: $(which python)"
+echo "PyTorch version: $(python -c 'import torch; print(torch.__version__)')"
+echo "CUDA available: $(python -c 'import torch; print(torch.cuda.is_available())')"
 echo "========================================================================"
 echo ""
 
@@ -35,7 +43,6 @@ echo ""
 cd $HOME/Lazimpa
 
 # Run ONLY transformer experiments (baseline + lazimpa) × 10 seeds = 20 runs
-# This runs both transformer_baseline and transformer_lazimpa
 python run_experiments.py \
   --config experiments_config.json \
   --experiments transformer_baseline transformer_lazimpa \
