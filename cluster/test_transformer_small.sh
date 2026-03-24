@@ -2,16 +2,16 @@
 
 #$ -M anzony.quispe@gmail.com   # Email address for job notification
 #$ -m abe                        # Send mail when job begins, ends and aborts
-#$ -pe smp 4                     # 4 CPU cores (for data loading)
+#$ -pe smp 2                     # 2 CPU cores
 #$ -q gpu                        # Run on the GPU cluster
 #$ -l gpu_card=1                 # 1 GPU card
-#$ -N lazimpa_transformer        # Job name
-#$ -l h_rt=72:00:00              # Max runtime 72 hours
-#$ -o logs/transformer_all.out
-#$ -e logs/transformer_all.err
+#$ -N lazimpa_test               # Job name
+#$ -l h_rt=00:30:00              # Max 30 minutes for small test
+#$ -o logs/test_transformer.out
+#$ -e logs/test_transformer.err
 
 # ============================================================
-# Load Conda Environment: Lazimpa
+# Load Conda Environment
 # ============================================================
 module load conda
 source activate Lazimpa
@@ -22,7 +22,7 @@ export CUDA_VISIBLE_DEVICES=0
 
 # Print job info
 echo "========================================================================"
-echo "LAZIMPA - TRANSFORMER EXPERIMENTS (FULL PAPER SETTINGS)"
+echo "LAZIMPA - SMALL TRANSFORMER TEST"
 echo "========================================================================"
 echo "Job ID: $JOB_ID"
 echo "Started on $(hostname) at $(date)"
@@ -37,17 +37,46 @@ echo ""
 # Change to project directory
 cd $HOME/Lazimpa
 
-# Create logs directory
-mkdir -p logs
+# Create output directories
+mkdir -p results/test_transformer/{sender,receiver,messages,accuracy,logs}
 
-# Run ONLY transformer experiments (baseline + lazimpa) × 10 seeds = 20 runs
-python run_experiments.py \
-  --config experiments_config.json \
-  --experiments transformer_baseline transformer_lazimpa \
-  --gpu 0
+# Run small test: 100 features, 10 epochs
+echo "Running small Transformer test..."
+python -m egg.zoo.channel.train \
+  --dir_save=results/test_transformer \
+  --n_features=100 \
+  --vocab_size=20 \
+  --max_len=10 \
+  --batch_size=32 \
+  --batches_per_epoch=100 \
+  --n_epochs=10 \
+  --lr=0.001 \
+  --probs=powerlaw \
+  --early_stopping_thr=0.9999 \
+  --force_eos=0 \
+  --sender_entropy_coeff=0.1 \
+  --receiver_entropy_coeff=0.1 \
+  --sender_cell=transformer \
+  --receiver_cell=transformer \
+  --sender_hidden=256 \
+  --receiver_hidden=256 \
+  --sender_embedding=128 \
+  --receiver_embedding=128 \
+  --sender_num_layers=2 \
+  --receiver_num_layers=2 \
+  --sender_num_heads=8 \
+  --receiver_num_heads=8 \
+  --causal_sender \
+  --causal_receiver \
+  --sender_generate_style=in-place \
+  --impatient=0 \
+  --reg=0 \
+  --length_cost=0.0 \
+  --random_seed=42
 
 echo ""
 echo "========================================================================"
-echo "TRANSFORMER EXPERIMENTS COMPLETE"
+echo "SMALL TEST COMPLETE"
 echo "Finished at $(date)"
+echo "Results saved to: results/test_transformer/"
 echo "========================================================================"
