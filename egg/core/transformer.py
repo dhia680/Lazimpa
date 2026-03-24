@@ -329,6 +329,9 @@ class TransformerDecoderLayer(nn.Module):
         residual = x
         x = self.encoder_attn_layer_norm(x)
         # would be a single vector, so no point in attention at all
+        # encoder_out is 2D (batch x embed), need to make it 3D (1 x batch x embed) for attention
+        if encoder_out.dim() == 2:
+            encoder_out = encoder_out.unsqueeze(0)
         x, attn = self.encoder_attn(
             query=x,
             key=encoder_out,
