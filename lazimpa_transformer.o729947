@@ -1,0 +1,36 @@
+ERROR: Unable to locate a modulefile for 'python/3.9'
+ERROR: Unable to locate a modulefile for 'pytorch/2.0'
+========================================================================
+LAZIMPA - TRANSFORMER EXPERIMENTS ONLY
+========================================================================
+Job ID: 729947
+Started on qa-a10-025.crc.nd.edu at Tue Mar 24 03:25:36 PM EDT 2026
+Working directory: /users/aquisper/Lazimpa
+GPU devices: 0
+========================================================================
+
+
+======================================================================
+EXPERIMENT QUEUE SUMMARY
+======================================================================
+Total runs: 20 (2 experiments × 10 seeds)
+GPU: 0
+======================================================================
+
+  • transformer_baseline: 10 seeds
+  • transformer_lazimpa: 10 seeds
+
+Estimated runtime: ~40 hours (assuming ~2h per run)
+
+Proceed with experiments? [y/N]: Traceback (most recent call last):
+  File "/users/aquisper/Lazimpa/run_experiments.py", line 245, in <module>
+    main()
+  File "/users/aquisper/Lazimpa/run_experiments.py", line 175, in main
+    response = input("\nProceed with experiments? [y/N]: ")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: EOF when reading a line
+
+========================================================================
+TRANSFORMER EXPERIMENTS COMPLETE
+Finished at Tue Mar 24 03:25:36 PM EDT 2026
+========================================================================
