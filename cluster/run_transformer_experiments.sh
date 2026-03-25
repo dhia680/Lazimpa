@@ -7,19 +7,14 @@
 #$ -l gpu_card=1                 # 1 GPU card
 #$ -N lazimpa_transformer        # Job name
 #$ -l h_rt=72:00:00              # Max runtime 72 hours
+#$ -o logs/transformer_all.out
+#$ -e logs/transformer_all.err
 
 # ============================================================
-# OPTION 1: Using Conda Environment (RECOMMENDED)
+# Load Conda Environment: lazimpa
 # ============================================================
 module load conda
-source activate lazimpa
-
-# ============================================================
-# OPTION 2: Using System Modules (uncomment if no conda)
-# ============================================================
-# module load python/3.10
-# module load cuda/11.8
-# module load pytorch/2.1
+conda activate lazimpa
 
 # Set environment variables
 export OMP_NUM_THREADS=$NSLOTS
@@ -27,20 +22,23 @@ export CUDA_VISIBLE_DEVICES=0
 
 # Print job info
 echo "========================================================================"
-echo "LAZIMPA - TRANSFORMER EXPERIMENTS ONLY"
+echo "LAZIMPA - TRANSFORMER EXPERIMENTS (FULL PAPER SETTINGS)"
 echo "========================================================================"
 echo "Job ID: $JOB_ID"
 echo "Started on $(hostname) at $(date)"
 echo "Working directory: $PWD"
-echo "GPU devices: $CUDA_VISIBLE_DEVICES"
 echo "Python: $(which python)"
 echo "PyTorch version: $(python -c 'import torch; print(torch.__version__)')"
 echo "CUDA available: $(python -c 'import torch; print(torch.cuda.is_available())')"
+echo "GPU: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"N/A\")')"
 echo "========================================================================"
 echo ""
 
-# Change to project directory (ADJUST THIS PATH!)
+# Change to project directory
 cd $HOME/Lazimpa
+
+# Create logs directory
+mkdir -p logs
 
 # Run ONLY transformer experiments (baseline + lazimpa) × 10 seeds = 20 runs
 python run_experiments.py \

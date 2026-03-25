@@ -12,17 +12,10 @@
 #$ -e logs/transformer_$TASK_ID.err
 
 # ============================================================
-# OPTION 1: Using Conda Environment (RECOMMENDED)
+# Load Conda Environment: lazimpa
 # ============================================================
 module load conda
-source activate lazimpa
-
-# ============================================================
-# OPTION 2: Using System Modules (uncomment if no conda)
-# ============================================================
-# module load python/3.10
-# module load cuda/11.8
-# module load pytorch/2.1
+conda activate lazimpa
 
 # Set environment
 export OMP_NUM_THREADS=$NSLOTS
@@ -36,6 +29,7 @@ echo "Job ID: $JOB_ID.$SGE_TASK_ID"
 echo "Started on $(hostname) at $(date)"
 echo "Python: $(which python)"
 echo "CUDA available: $(python -c 'import torch; print(torch.cuda.is_available())')"
+echo "GPU: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"N/A\")')"
 echo "========================================================================"
 echo ""
 
@@ -62,21 +56,20 @@ echo "Running: $EXPERIMENT with seed $SEED"
 echo ""
 
 # Create output directory
-mkdir -p results/${EXPERIMENT}/seed_${SEED}/logs
-mkdir -p results/${EXPERIMENT}/seed_${SEED}/sender
-mkdir -p results/${EXPERIMENT}/seed_${SEED}/receiver
-mkdir -p results/${EXPERIMENT}/seed_${SEED}/messages
-mkdir -p results/${EXPERIMENT}/seed_${SEED}/accuracy
+mkdir -p results/${EXPERIMENT}/seed_${SEED}/{logs,sender,receiver,messages,accuracy}
 
 # Set impatient/reg/length_cost based on experiment type
+# Note: type=bool in argparse doesn't work correctly, so we omit flags for False
 if [ "$EXPERIMENT" == "transformer_lazimpa" ]; then
-    IMPATIENT_FLAG="--impatient=1 --reg=1 --length_cost=0.01"
+    IMPATIENT_FLAG="--impatient=True --reg=True --length_cost=0.01"
 else
-    IMPATIENT_FLAG="--impatient=0 --reg=0 --length_cost=0.0"
+    IMPATIENT_FLAG="--length_cost=0.0"
+    # impatient and reg default to False, so we don't pass them
 fi
 
-# Run the specific experiment with this seed directly
+# Run the specific experiment with this seed (FULL PAPER SETTINGS)
 python -m egg.zoo.channel.train \
+  --dir_save=results/${EXPERIMENT}/seed_${SEED} \
   --n_features=1000 \
   --vocab_size=40 \
   --max_len=30 \
@@ -84,11 +77,11 @@ python -m egg.zoo.channel.train \
   --batches_per_epoch=1000 \
   --n_epochs=500 \
   --lr=0.001 \
-  --sender_entropy_coeff=0.1 \
-  --receiver_entropy_coeff=0.1 \
   --probs=powerlaw \
   --early_stopping_thr=0.9999 \
   --force_eos=0 \
+  --sender_entropy_coeff=0.1 \
+  --receiver_entropy_coeff=0.1 \
   --sender_cell=transformer \
   --receiver_cell=transformer \
   --sender_hidden=512 \
@@ -104,10 +97,9 @@ python -m egg.zoo.channel.train \
   --sender_generate_style=in-place \
   $IMPATIENT_FLAG \
   --random_seed=${SEED} \
-  --dir_save=results/${EXPERIMENT}/seed_${SEED} \
   --name=${EXPERIMENT}_seed${SEED}
 
 echo ""
 echo "========================================================================"
-echo "Task $SGE_TASK_ID finished at $(date)"
+echo "Task $SGE_TASK_ID ($EXPERIMENT seed $SEED) finished at $(date)"
 echo "========================================================================"
