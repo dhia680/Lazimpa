@@ -6,14 +6,18 @@
 #$ -q gpu                        # Run on the GPU cluster
 #$ -l gpu_card=1                 # 1 GPU card per job
 #$ -t 1-40                       # Array job: 40 tasks (4 experiments × 10 seeds)
-#$ -N lazimpa_full               # Job name
-#$ -l h_rt=24:00:00              # Max 24 hours per job (full paper settings need ~12-15h)
+#$ -N lazimpa_medium             # Job name
+#$ -l h_rt=6:00:00               # Max 6 hours per job
 #$ -o logs/exp_$TASK_ID.out
 #$ -e logs/exp_$TASK_ID.err
 
 # ============================================================
-# Load Conda Environment: lazimpa
+# MEDIUM SETTINGS - Faster but still meaningful results
+# n_features=500, n_epochs=200, batches_per_epoch=500
+# Estimated time: ~3-4 hours per job
 # ============================================================
+
+# Load Conda Environment
 module load conda
 conda activate lazimpa
 
@@ -23,7 +27,7 @@ export CUDA_VISIBLE_DEVICES=0
 
 # Print job info
 echo "========================================================================"
-echo "LAZIMPA FULL EXPERIMENT ARRAY - Task $SGE_TASK_ID of $SGE_TASK_LAST"
+echo "LAZIMPA EXPERIMENT (MEDIUM) - Task $SGE_TASK_ID of $SGE_TASK_LAST"
 echo "========================================================================"
 echo "Job ID: $JOB_ID.$SGE_TASK_ID"
 echo "Started on $(hostname) at $(date)"
@@ -43,7 +47,7 @@ declare -a EXPERIMENTS=("lstm_baseline" "lstm_lazimpa" "transformer_baseline" "t
 declare -a SEEDS=(42 123 456 789 1011 1337 2048 3141 4242 5555)
 
 # Calculate which experiment and seed to run based on task ID
-TASK_INDEX=$((SGE_TASK_ID - 1))  # SGE tasks are 1-indexed
+TASK_INDEX=$((SGE_TASK_ID - 1))
 NUM_SEEDS=${#SEEDS[@]}
 EXP_INDEX=$((TASK_INDEX / NUM_SEEDS))
 SEED_INDEX=$((TASK_INDEX % NUM_SEEDS))
@@ -59,7 +63,6 @@ mkdir -p results/${EXPERIMENT}/seed_${SEED}/{logs,sender,receiver,messages,accur
 
 # Set architecture-specific parameters
 if [[ "$EXPERIMENT" == *"transformer"* ]]; then
-    # Transformer architecture
     ARCH_PARAMS="--sender_cell=transformer \
       --receiver_cell=transformer \
       --sender_hidden=512 \
@@ -74,7 +77,6 @@ if [[ "$EXPERIMENT" == *"transformer"* ]]; then
       --causal_receiver \
       --sender_generate_style=in-place"
 else
-    # LSTM architecture (original paper settings)
     ARCH_PARAMS="--sender_cell=lstm \
       --receiver_cell=lstm \
       --sender_hidden=250 \
@@ -90,18 +92,17 @@ if [[ "$EXPERIMENT" == *"lazimpa"* ]]; then
     LAZIMPA_PARAMS="--impatient=True --reg=True --length_cost=0.01"
 else
     LAZIMPA_PARAMS="--length_cost=0.0"
-    # impatient and reg default to False
 fi
 
-# Run the experiment (FULL PAPER SETTINGS)
+# Run the experiment (MEDIUM SETTINGS - faster)
 python -m egg.zoo.channel.train \
   --dir_save=results/${EXPERIMENT}/seed_${SEED} \
-  --n_features=1000 \
+  --n_features=500 \
   --vocab_size=40 \
   --max_len=30 \
   --batch_size=32 \
-  --batches_per_epoch=1000 \
-  --n_epochs=500 \
+  --batches_per_epoch=500 \
+  --n_epochs=200 \
   --lr=0.001 \
   --probs=powerlaw \
   --early_stopping_thr=0.9999 \
