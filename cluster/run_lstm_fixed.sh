@@ -5,7 +5,7 @@
 #$ -pe smp 4                     # 4 CPU cores
 #$ -q gpu                        # Run on the GPU cluster
 #$ -l gpu_card=1                 # 1 GPU card per job
-#$ -t 1-20                       # Array job: 20 tasks (2 LSTM experiments × 10 seeds)
+#$ -t 1-2                        # Array job: 2 tasks (2 LSTM experiments × 1 seed)
 #$ -N lstm_fixed                 # Job name
 #$ -l h_rt=24:00:00              # Max 24 hours per job
 #$ -o logs/lstm_$TASK_ID.out
@@ -38,9 +38,9 @@ cd $HOME/Lazimpa
 # Create logs directory if needed
 mkdir -p logs
 
-# Configuration - ONLY LSTM EXPERIMENTS
+# Configuration - ONLY LSTM EXPERIMENTS (1 seed only)
 declare -a EXPERIMENTS=("lstm_baseline" "lstm_lazimpa")
-declare -a SEEDS=(42 123 456 789 1011 1337 2048 3141 4242 5555)
+declare -a SEEDS=(42)
 
 # Calculate which experiment and seed to run based on task ID
 TASK_INDEX=$((SGE_TASK_ID - 1))  # SGE tasks are 1-indexed
