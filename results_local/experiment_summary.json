@@ -1,0 +1,20 @@
+{
+  "total_runs": 12,
+  "successful": 12,
+  "failed": 0,
+  "total_time_hours": 0.9298217519786622,
+  "avg_time_per_run_minutes": 4.649108759893311,
+  "experiments": [
+    "lstm_baseline",
+    "lstm_lazimpa",
+    "transformer_baseline",
+    "transformer_lazimpa"
+  ],
+  "seeds": [
+    42,
+    123,
+    456
+  ],
+  "timestamp": "2026-03-18T17:10:45.610470",
+  "device": "CPU (MacBook)"
+}

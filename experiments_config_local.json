@@ -1,0 +1,78 @@
+{
+  "common_params": {
+    "n_features": 200,
+    "vocab_size": 20,
+    "max_len": 15,
+    "batch_size": 16,
+    "batches_per_epoch": 100,
+    "n_epochs": 100,
+    "lr": 0.001,
+    "sender_entropy_coeff": 0.1,
+    "receiver_entropy_coeff": 0.1,
+    "probs": "powerlaw",
+    "early_stopping_thr": 0.9999,
+    "force_eos": 0,
+    "no_cuda": true
+  },
+
+  "architecture_configs": {
+    "lstm": {
+      "sender_cell": "lstm",
+      "receiver_cell": "lstm",
+      "sender_hidden": 128,
+      "receiver_hidden": 256,
+      "sender_embedding": 32,
+      "receiver_embedding": 32,
+      "sender_num_layers": 1,
+      "receiver_num_layers": 1
+    },
+    "transformer": {
+      "sender_cell": "lstm",
+      "receiver_cell": "transformer",
+      "sender_hidden": 128,
+      "receiver_hidden": 256,
+      "receiver_embedding": 128,
+      "sender_embedding": 32,
+      "sender_num_layers": 1,
+      "receiver_num_layers": 2,
+      "sender_num_heads": 4,
+      "receiver_num_heads": 4,
+      "causal_sender": true,
+      "causal_receiver": true,
+      "sender_generate_style": "in-place"
+    }
+  },
+
+  "experiments": {
+    "lstm_baseline": {
+      "description": "Standard Agents with LSTM (baseline)",
+      "architecture": "lstm",
+      "impatient": false,
+      "reg": false,
+      "length_cost": 0.0
+    },
+    "lstm_lazimpa": {
+      "description": "LazImpa with LSTM",
+      "architecture": "lstm",
+      "impatient": true,
+      "reg": true,
+      "length_cost": 0.01
+    },
+    "transformer_baseline": {
+      "description": "Standard Agents with Transformer (baseline)",
+      "architecture": "transformer",
+      "impatient": false,
+      "reg": false,
+      "length_cost": 0.0
+    },
+    "transformer_lazimpa": {
+      "description": "LazImpa with Transformer",
+      "architecture": "transformer",
+      "impatient": true,
+      "reg": true,
+      "length_cost": 0.01
+    }
+  },
+
+  "seeds": [42, 123, 456]
+}

@@ -1,0 +1,1438 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage{longtable,booktabs,array}
+\usepackage{multirow}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\usepackage[normalem]{ulem}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{quote}
+\textbf{``LazImpa'': \emph{Laz}y and \emph{Impa}tient neural agents}
+\end{quote}
+
+\textbf{learn to communicate efficiently}
+
+\begin{quote}
+\textbf{Mathieu Rita1} \textbf{Rahma Chaabouni1,2} \textbf{Emmanuel
+Dupoux1,2}
+\end{quote}
+
+1Cognitive Machine Learning (ENS/EHESS/PSL Research
+University/CNRS/INRIA)
+
+2Facebook AI Research
+
+mathieu.rita@polytechnique.edu, \emph{\{}rchaabouni,dpx\emph{\}}@fb.com
+
+\textbf{Abstract}
+
+\begin{quote}
+Previous work has shown that artificial neu-ral agents naturally develop
+surprisingly non-efficient codes. This is illustrated by the fact that
+in a referential game involving a speaker and a listener neural networks
+optimizing accu-rate transmission over a discrete channel, the emergent
+messages fail to achieve an optimal length. Furthermore, frequent
+messages tend to be longer than infrequent ones, a pattern con-trary to
+the Zipf Law of Abbreviation (ZLA) ob-served in all natural languages.
+Here, we show that near-optimal and ZLA-compatible mes-sages can emerge,
+but only if both the speaker and the listener are modified. We hence
+in-troduce a new communication system, ``Laz-Impa'', where the speaker
+is made increasingly \emph{laz}y, i.e., avoids long messages, and the
+listener \emph{impa}tient, i.e., seeks to guess the intended con-tent as
+soon as possible.
+
+\textbf{1} \textbf{Introduction}
+\end{quote}
+
+Recent emergent-communication studies, renewed by the astonishing
+success of neural networks, are of-ten motivated by a desire to develop
+neural network agents eventually able to verbally interact with humans
+(Havrylov and Titov, 2017; Lazaridou et al., 2017). To facilitate such
+interaction, neural networks' emergent language should possess many
+natural-language-like properties. However, it has been shown that, even
+if these emergent languages lead to successful communi-cation, they
+often do not bear core properties of natural language (Kottur et al.,
+2017; Bouchacourt and Baroni, 2018; Lazaridou et al., 2018; Chaabouni et
+al., 2020). In this work, we focus on one basic property of nat-ural
+language that resides on the tendency to use mes-sages that are close to
+the informational optimum. This is illustrated in the Zipf's law of
+Abbreviation (ZLA), an empirical law that states that in natural
+language, the more frequent a word is, the shorter it tends to be (Zipf,
+1949; Teahan et al., 2000; Sigurd et al., 2004; Strauss et al., 2007).
+Crucially, ZLA is considered to be an \emph{efficient} property of our
+language (Gibson et al., 2019). Besides the obvious fact that an
+efficient code
+
+\begin{quote}
+would be easier to process for us, it is also argued to be a core
+property of natural language, likely to be correlated with other
+fundamental aspects of human communica-tion, such as regularity and
+compositionality (Kirby, 2001). Encouraging it might hence lead to
+emergent lan-guages that are also more likely to develop these other
+desirable properties.
+
+Despite the importance of such property, Chaabouni et al. (2019) showed
+that standard neural network agents, when trained to play a simple
+signaling game (Lewis, 1969), develop an inefficient code, which even
+displays an \emph{anti-}ZLA pattern. That is, counterintuitively, more
+frequent inputs are coded with longer messages than less frequent ones.
+This inefficiency was related to neural networks' ``innate preference''
+for long messages. In this work, we aim at understanding which
+constraints need to be introduced on neural network agents in order to
+overcome their innate preferences and communicate efficiently, showing a
+proper ZLA pattern.
+
+To this end, we use a reconstruction game where we have two neural
+network agents: speaker and listener. For each input, the speaker
+outputs a sequence of sym-bols (which constitutes the message) sent to
+the listener. The latter needs then to predict the speaker's input based
+on the given message. Also, similarly to the previous work, inputs are
+drawn from a power-law distribution.
+
+We first describe the experimental and optimization framework (see
+Section 2). In particular, we introduce a new communication system
+called `LazImpa', compris-ing two different constraints (a)
+\emph{Laz}iness on the speaker side and (b) \emph{Impa}tience on the
+listener side. The former constraint is inspired by the least-effort
+principle which is attested to be a ubiquitous pressure in human
+com-munication (Piantadosi et al., 2011; Zipf, 1949; Kanwal et al.,
+2017).
+
+However, if such a constraint is applied too early, the system does not
+learn an efficient system. We show that incrementally penalizing long
+messages in the cost func-tion enables an early exploration of the
+message space (a kind of `babbling phase') and prevents converging to an
+inefficient local minimum.
+
+The other constraint, on the listener side, relies on the prediction
+mechanism, argued to be important in language comprehension (e.g.,
+Federmeier, 2007; Alt-mann and Mirkovi´c, 2009), and is achieved by
+allowing
+
+335\\
+\emph{Proceedings of the 24th Conference on Computational Natural
+Language Learning}, pages 335--343 Online, November 19-20, 2020. c
+https://doi.org/10.18653/v1/P17\emph{⃝}2020 Association for
+Computational Linguistics
+
+the listener to reconstruct the intended input as soon as possible. We
+also provide a two-level analytical method: first, metrics quantifying
+the efficiency of a code; sec-ond, a new protocol to measure its
+informativeness (see Section 3). Applying these metrics, we demonstrate
+that, contrary to the standard speaker/listener agents, our new
+communication system `LazImpa' leads to the emer-gence of an efficient
+code. The latter follows a \emph{ZLA-like} distribution, close to
+natural languages (see Sections 4.1 and 4.2). Besides the plausibility
+of the introduced con-straints, our new communication system is, first,
+task-and architecture-agnostic (requires only communicating with
+sequences of symbols), and second allows stable optimization of the
+speaker/listener. We also show how both listener and speaker constraints
+are fundamental to the emergence of a ZLA-like distribution, as
+efficient as natural language (see Section 4.3).
+
+\textbf{2} \textbf{Experimental framework}
+\end{quote}
+
+We explore the properties of emergent communication in the context of
+referential games where neural network agents, Speaker and Listener,
+have to cooperatively com-municate in order to win the game.
+
+\begin{quote}
+ates a message \emph{m} of maximum length max\_len. The Speaker network
+receives an input \emph{i ∈I} and gener-
+
+symbols of the message belong to a vocabulary \emph{V} =
+
+where EOS is the `end of sentence' token indicating the
+\emph{\{s}1\emph{, s}2\emph{, ..., s}voc\_size\emph{−}1\emph{,}
+EOS\emph{\}} of size voc\_size
+
+end of Speaker's message. Listener network receives and consumes the
+message \emph{m}. Based on this message, it outputsˆ\emph{i}. The two
+agents are successful if Listener manages to guess the right input
+(i.e.,ˆ\emph{i} = \emph{i}).
+
+We make two main assumptions. First inputs are drawn from \emph{I}
+following a power-law distribution, where \emph{I} is composed of 1000
+one-hot vectors.
+\end{quote}
+
+Consequently, the probability of sampling the \emph{kth}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 0\tabcolsep) * \real{1.0000}}@{}}
+\toprule()
+\begin{minipage}[b]{\linewidth}\raggedright
+\begin{quote}
+most frequent input is: \emph{j}=11\emph{/j} modelling words' dis-
+1\emph{/k}
+\end{quote}
+
+tribution in natural language (Zipf, 2013) (see details in Appendix
+A.1.1). Second, we experiment in the main paper with max\_len = 30 and
+voc\_size = 40.1 We further discuss the influence of these assumptions
+in Appendix. A.4.2 and show the robustness of our results to assumptions
+change.
+
+\begin{quote}
+In our analysis, we only consider the successful runs, i.e., the runs
+with a uniform accuracy strictly higher than 97\% over all possible 1000
+inputs. An emergent lan-guage consists then of the input-message
+mapping. That is, for each input \emph{i ∈I} fed to Speaker after
+successful communication, we note its output \emph{m}.
+
+agents after succeeding in the game. By \emph{M}, we define the set of
+messages \emph{m} used by our
+\end{quote}
+\end{minipage} \\
+\midrule()
+\endhead
+\bottomrule()
+\end{longtable}
+
+\begin{quote}
+1This combination makes our setting comparable to natural languages; the
+latter has no upper bound on the maximum length, also a vocabulary size
+of 40 is close to the alphabet size of the natural languages we study of
+mean vocabulary size equal to 41\emph{.}75. See Chaabouni et al. (2019)
+for more details.
+
+\textbf{2.1 Agent architectures}
+
+In our experiments, we compare two communication systems:
+
+\emph{•} Standard Agents: as a baseline, composed of Stan-dard Speaker
+and Standard Listener;
+
+\emph{•} `LazImpa': \emph{Impa}tient Listener. composed of \emph{Laz}y
+Speaker and
+
+For both Speaker and Listener, we experiment with ei-ther standard or
+modified LSTM architectures (Hochre-iter and Schmidhuber, 1997).
+\end{quote}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule()
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{2.1.1}
+\end{minipage} &
+\multicolumn{3}{>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.7500} + 4\tabcolsep}@{}}{%
+\begin{minipage}[b]{\linewidth}\raggedright
+\begin{quote}
+\textbf{Standard Agents}
+\end{quote}
+\end{minipage}} \\
+\midrule()
+\endhead
+\multicolumn{3}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.7500} + 4\tabcolsep}}{%
+\textbf{Standard Speaker.}} &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+Standard Speaker is a single-
+\end{quote}
+\end{minipage} \\
+\multicolumn{4}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{1.0000} + 6\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+layer LSTM. First, Speaker's inputs \emph{i} are mapped by a linear
+layer into an initial hidden state of Speaker's LSTM cell. Then, the
+message \emph{m} is generated symbol by symbol: the current sequence is
+fed to the LSTM cell that outputs a new hidden state. Next, this hidden
+state is mapped by a linear layer followed by a softmax to a Categorical
+distribution over the vocabulary. During the training phase, the next
+symbol is sampled from this distribution. During the testing phase, the
+next symbol is deterministically selected by taking the argmax of the
+distribution.
+\end{quote}
+\end{minipage}} \\
+\multicolumn{3}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.7500} + 4\tabcolsep}}{%
+\textbf{Standard Listener.}} &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+Standard Listener is also a single-
+\end{quote}
+\end{minipage} \\
+\multicolumn{4}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{1.0000} + 6\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+layer LSTM. Once the message \emph{m} is generated by Speaker, it is
+entirely passed to Standard Listener. Stan-dard Listener consumes the
+symbols one by one, until the EOS token is seen (the latter is included
+and fed to Listener). At the end, the final hidden state is mapped to a
+Categorical distribution \emph{L}(\emph{m}) over the input indices
+(linear layer + softmax). This distribution is then used during the
+training to compute the loss. During the test-ing phase, we take the
+argmax of the distribution as a reconstruction candidate.
+
+\textbf{Standard loss} \emph{Lstd}\textbf{.} use the cross-entropy loss
+between the ground truth one-For Standard Agents, we merely
+
+hot vector \emph{i} and the output Categorical distribution of Listener
+\emph{L}(\emph{m}).
+\end{quote}
+\end{minipage}} \\
+\textbf{2.1.2} &
+\multicolumn{3}{>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.7500} + 4\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+\textbf{LazImpa}
+\end{quote}
+\end{minipage}} \\
+\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.5000} + 2\tabcolsep}}{%
+\textbf{Lazy Speaker.}} &
+\multicolumn{2}{>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.5000} + 2\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+Lazy Speaker has the same architec-
+\end{quote}
+\end{minipage}} \\
+\multicolumn{4}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{1.0000} + 6\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+ture as Standard Speaker. The `Laziness' comes from a cost on the length
+of the message \emph{m} directly applied to the loss.
+\end{quote}
+\end{minipage}} \\
+\multicolumn{3}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.7500} + 4\tabcolsep}}{%
+\textbf{Impatient Listener.}} &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+We introduce Impatient Listener,
+\end{quote}
+\end{minipage} \\
+\multicolumn{4}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{1.0000} + 6\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+designed to guess the intended content as soon as possi-ble. As shown in
+Figure 1, Impatient Listener consists of a modified Standard Listener
+that, instead of guessing \emph{i} after consuming the entire message
+\emph{m} = (\emph{m}0\emph{, ..., mt}), makes a predictionˆ\emph{ik} for
+each symbol \emph{mk}.2This mod-ification takes advantage of the
+recurrent property of the LSTM, however, could be adapted to any causal
+sequential neural network model.
+\end{quote}
+\end{minipage}} \\
+\bottomrule()
+\end{longtable}
+
+\begin{quote}
+2\emph{mt}=EOS by construction.
+\end{quote}
+
+336
+
+At training, a prediction of Impatient Listener, at a position \emph{k},
+is a Categorical distribution \emph{L}(\emph{m}:\emph{k}), con-structed
+using a shared single linear layer followed by a softmax (with
+\emph{m}:\emph{k} = (\emph{m}0\emph{, ..., mk})). Eventu-ally, we get a
+sequence of \emph{t} + 1 distributions \emph{L}(\emph{m}) =
+(\emph{L}(\emph{m}:0)\emph{, ..., L}(\emph{m}:\emph{t})), one for each
+reading position of the message.
+
+\begin{quote}
+At test time, we only take the argmax of the distribu-tion generated by
+Listener when it reads the EOS token.
+
+\includegraphics[width=2.03333in,height=1.65417in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image1.png}
+
+Figure 1: Impatient Listener architecture. The agent is composed of a
+single-layer LSTM cell and one shared linear layer followed by a
+softmax. It generates a pre-diction at each time step.
+
+\textbf{LazImpa Loss} \emph{Llaz}\textbf{.} LazImpa loss is composed of
+two parts that model `Impatience' (\emph{Llaz/L}) and `Lazi-ness'
+(\emph{Llaz/S}), such that,
+\end{quote}
+
+\emph{Llaz}(\emph{i, m, L}(\emph{m})) = \emph{Llaz/L}(\emph{i,
+L}(\emph{m})) + \emph{Llaz/S}(\emph{m})\emph{.} (1)
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule()
+\multicolumn{5}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{1.0000} + 8\tabcolsep}@{}}{%
+\begin{minipage}[b]{\linewidth}\raggedright
+guess the right candidate as soon as possible when On one hand,
+\emph{Llaz/L} forces Impatient Listener to
+
+\begin{quote}
+reading the message \emph{m}. For this purpose, with \emph{i} the
+ground-truth input and \emph{L}(\emph{m}) = (\emph{L}(\emph{m}:0)\emph{,
+..., L}(\emph{m}:\emph{t})) the sequence of intermediate distributions,
+the Impa-tience Loss is defined as the mean cross-entropy loss between
+\emph{i} and the intermediate distributions:
+\end{quote}
+\end{minipage}} \\
+\midrule()
+\endhead
+(\emph{i} (\emph{m}) = & 1 & \emph{t} & \emph{i,L}) & (2) \\
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+\emph{Llaz/L}(\emph{i} (\emph{m}) =
+\end{quote}
+\end{minipage} & \emph{t} + 1 & \emph{k}=0 &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+\emph{Lstdi,L}:\emph{k})
+\end{quote}
+\end{minipage} & \\
+\bottomrule()
+\end{longtable}
+
+\begin{quote}
+Hence, all the intermediate distributions contribute to the loss
+function according to the following principle: the earlier the Listener
+predicts the correct output, the larger the reward is.
+
+tive penalty on message lengths. The idea is to first On the other hand,
+\emph{Llaz/S} consists of an adap-
+
+let the system explore long and discriminating mes-sages
+(\textbf{exploration step}) and then, once it reaches good enough
+communication performances, we apply a length cost (\textbf{reduction
+step}). With \emph{\textbar m\textbar{}} the length of the message
+associated with the input \emph{i} and `acc' the es-timation of the
+accuracy (proportion of inputs correctly communicated weighted by
+appearance frequency), the Laziness Loss is defined as:
+
+\emph{Llaz/S}(\emph{m}) = \emph{α}(acc)\emph{\textbar m\textbar{}} (3)
+
+To schedule this two-step training, we model \emph{α} as shown in Figure
+2. The regularization is mainly com-posed of two branches: (1)
+exploration step and (2) re-duction step. The latter starts only when
+the two agents become successful.
+\end{quote}
+
+\includegraphics[width=2.09167in,height=1.39306in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image2.png}
+
+\begin{quote}
+Figure 2: Scheduling of the regularization parameter\emph{α} as a
+function of the accuracy. We distinguish two different regimes: the
+exploration and the reduction regimes. See the mathematical description
+in Appendix A.1.4
+
+\textbf{2.2 Optimization}
+
+The overall setting, which can be seen as a discrete auto-encoder,
+cannot be differentiated directly, as the latent space is discrete. We
+use a hybrid optimization between REINFORCE for Speaker (Williams, 1992)
+and classic back-propagation for Listener (Schulman et al., 2015).
+\end{quote}
+
+and \emph{L}(\emph{m}) the output distribution of Listener that takes
+With \emph{L} the loss of the system, \emph{i} the ground-truth input
+
+the message \emph{m} as input, the training task consists in
+
+\begin{quote}
+The expectation is computed w.r.t the joint distribution minimizing the
+expectation of the loss E{[}\emph{L}(\emph{i, L}(\emph{m})){]}.
+
+of the inputs and the message sequences. Let's denote\emph{θL} and
+\emph{θS} Listener and Speaker parameters respectively. The optimization
+task requires to compute the gradient\emph{∇θS∪θL}E{[}\emph{L}(\emph{i,
+L}(\emph{m})){]}. An unbiased estimate of this gradient is the gradient
+of the following function:
+
+E{[}\emph{L}(\emph{i, L}(\emph{m}; \emph{θL})) +
+(\emph{\uline{\{L}}(\emph{i, L}(\emph{m}; \emph{θL}))\emph{\} −b}) log
+\emph{PS}(\emph{m\uline{\textbar{}}θS}) {]}\emph{,}
+
+(\emph{A}) (\emph{B})\\
+(4)
+
+the probability that Speaker generates the message \emph{m}, where
+\emph{\{.\}} is the stop-gradient operation,
+\emph{PS}(\emph{m\textbar θS})
+
+\emph{b} the running-mean baseline used to reduce variance (Williams,
+1992). We also promote exploration by en-couraging Speaker's entropy
+(Williams and Peng, 1991).
+
+The gradient of (4) w.r.t \emph{θL} is found via conventional
+back-propagation (A) while gradient w.r.t \emph{θS} is found with a
+REINFORCE-like procedure estimating the gra-dient via a Monte-Carlo
+integration calculated over sam-ples of the messages (B). Once the
+gradient is estimated, it is eventually passed to the Adam optimizer
+(Kingma and Ba, 2014).
+\end{quote}
+
+337
+
+\begin{quote}
+In Appendix A.3.1, we show that LazImpa leads to a stable convergence.
+We use the EGG toolkit (Kharitonov et al., 2019) as a starting
+framework. For reproducibility, the code can be found at https://
+github.com/MathieuRita/Lazimpa and the set of hyper-parameters used is
+presented in Appendix A.1.
+
+\textbf{3} \textbf{Analytical method}
+
+As ZLA is defined informally, we first introduce refer-ence
+distributions for comparison. Then, we propose some simple metrics to
+evaluate the overall efficiency of our emergent codes. Eventually, we
+provide a sim-ple protocol to analyze the distribution of information
+within the messages.
+
+\textbf{3.1} \textbf{Reference distributions}
+\end{quote}
+
+We compare the emergent languages to the reference distributions
+introduced in Chaabouni et al. (2019). We provide below a brief
+description of the different dis-tributions, however, we invite readers
+to refer to the reference paper for more details.
+
+\begin{quote}
+\textbf{Optimal Coding} (Cover and Thomas, 2006) guaran-tees the
+shortest average message length with max\_len = 30 and voc\_size = 40.
+To do so, we determin-istically associate the shortest messages to the
+most frequent inputs. See Ferrer i Cancho et al. (2013) for more details
+about the derivation of Optimal Coding.
+
+\textbf{Natural Language} We also compare emergent lan-guages with
+several human languages. In particular, we consider the same languages
+of the reference paper (English, Arabic, Russian, and Spanish). These
+refer-ences consist of the mapping from the frequency of the top 1000
+most frequent words in each language to their length (approximated by
+the number of characters of each word).3
+
+\textbf{3.2} \textbf{Efficiency metrics}
+
+In this work, we examine the constraints needed for neu-ral agents to
+develop efficient languages. We use three metrics to evaluate how
+efficient the different codes are. For all metrics, \emph{N} denotes the
+total number of messages (=1000) and \emph{l}(\emph{m}) the length of a
+message \emph{m}.
+\end{quote}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule()
+\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.5000} + 2\tabcolsep}}{%
+\begin{minipage}[b]{\linewidth}\raggedright
+\begin{quote}
+\textbf{Mean message length} \emph{Ltype}\textbf{:}
+\end{quote}
+\end{minipage}} &
+\multicolumn{2}{>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.5000} + 2\tabcolsep}@{}}{%
+\begin{minipage}[b]{\linewidth}\raggedright
+measures the mean
+\end{minipage}} \\
+\midrule()
+\endhead
+\multicolumn{4}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{1.0000} + 6\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+length of the messages assuming a \emph{uniform} weight for each
+input/message:
+\end{quote}
+\end{minipage}} \\
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+\emph{Ltype} = 1\\
+\emph{N}
+\end{quote}\strut
+\end{minipage} & \emph{m∈M} &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+\emph{l}(\emph{m})\emph{,}
+\end{quote}
+\end{minipage} & (5) \\
+\multicolumn{3}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.7500} + 4\tabcolsep}}{%
+\textbf{Mean weighted message length} \emph{Ltoken}} &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+: measures
+\end{quote}
+\end{minipage} \\
+\multicolumn{4}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{1.0000} + 6\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+the average length of the messages weighted by their generation
+frequency:
+\end{quote}
+\end{minipage}} \\
+\emph{Ltoken} = &
+\multicolumn{2}{>{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.5000} + 2\tabcolsep}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+\emph{p}(\emph{m})\emph{l}(\emph{m})\emph{,}
+\end{quote}
+\end{minipage}} & (6) \\
+\bottomrule()
+\end{longtable}
+
+\emph{m∈M}
+
+\begin{quote}
+where \emph{p}(\emph{m}) is the probability of message \emph{m} (equal
+to the probability of input \emph{i} denoted by \emph{m}) such that
+\emph{m∈Mp}(\emph{m}) = 1. Formally, the message \emph{m} referring to
+the \emph{kth}most frequent input would have a probability
+\end{quote}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule()
+\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{1.0000} + 2\tabcolsep}@{}}{%
+\begin{minipage}[b]{\linewidth}\raggedright
+\begin{quote}
+1\emph{/k}\\
+1000 1 1\emph{/j}.
+
+Note that, the Optimal Coding is the one that minimizes \emph{Ltoken}
+(Cover and Thomas, 2006; Ferrer i Cancho et al., 2013).
+
+\textbf{ZLA significance score} \emph{pZLA}\textbf{:} Let's note
+(\emph{li})\emph{i∈I} a distribution of message lengths of a code. As a
+ZLA distribution is the one that minimizes \emph{Ltoken}, we can check
+if (\emph{li})\emph{i∈I} follows ZLA by testing if its \emph{Ltoken} is
+lower than any random permutation of its frequency-length mapping. This
+is the idea of the randomization test proposed by Ferrer i Cancho et al.
+(2013).
+
+The test checks whether \emph{Ltoken} coincides with
+
+puts. We can eventually compute a p-value \emph{pZLA} (at
+\emph{i∈Ilifσ}(\emph{i}), with \emph{σ}(\emph{i}) a random permutation
+of in-
+
+threshold \emph{α}) that measures to which extent \emph{Ltoken} is
+likely to be smaller than any other weighted mean mes-sage length of a
+frequency-length mapping. \emph{pZLA \textless{} α}indicates that any
+random permutation would have most likely longer weighted mean length.
+Thus (\emph{li})\emph{i∈I} fol-lows \emph{significantly} a ZLA
+distribution. Additional details are provided in Appendix A.3.2.
+\end{quote}\strut
+\end{minipage}} \\
+\midrule()
+\endhead
+\textbf{3.3} & \begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+\textbf{Information analysis}
+\end{quote}
+\end{minipage} \\
+\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{1.0000} + 2\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+We also provide an analytical protocol to evaluate how information is
+distributed within the messages. We con-sider a symbol to be informative
+if replacing it ran-domly has an effect on Listener's prediction.
+Formally, let's take the message \emph{m} = (\emph{m}0\emph{, ..., mt})
+associated to the ground truth input \emph{i} after training. To
+evalu-ate the information contained in the symbol at posi-tion \emph{k},
+\emph{mk}, we substitute it randomly by drawing an-other symbol
+\emph{rk} uniformly from the vocabulary (ex-cept the EOS token). Then,
+we feed this new message \emph{m} = (\emph{m}1\emph{, ..., rk, ..., mt})
+into Listener that outputs ˜\emph{om,k} (index \emph{m} indicates that
+the original message was \emph{m}, index \emph{k} indicates that the
+\emph{kth}symbol of the original message has been replaced). We define
+Λ\emph{m,k} a boolean score that evaluates whether the symbol replaced
+at position \emph{k} has an impact on the prediction, such that
+
+\begin{quote}
+Λ\emph{k,m} = \textbf{1}(˜message \emph{m} is considered as informative.
+If Λ\emph{m,k} = 0, \emph{om,k ̸}= \emph{i}). If Λ\emph{m,k} = 1, the
+\emph{kth}symbol of
+
+it is considered as non-informative. We do not con-sider
+misreconstructed inputs, neither the position \emph{t}, as
+\emph{mt}=EOS.4This token is needed for Listener's predic-tion at test
+time.
+\end{quote}
+\end{minipage}} \\
+\bottomrule()
+\end{longtable}
+
+\begin{quote}
+This test allows us to introduce some variables that quantify to which
+extent information is effectively dis-tributed within the messages. As
+previously, we note \emph{l}(\emph{m}) the length of message \emph{m}
+and \emph{N} the total number of messages.
+
+3We use the frequency lists from http://corpus. leeds.ac.uk/serge/.
+
+4As we only consider successful runs, more than 97\% of inputs are, by
+definition, well-reconstructed.
+\end{quote}
+
+338
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule()
+\multicolumn{5}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{1.0000} + 8\tabcolsep}@{}}{%
+\begin{minipage}[b]{\linewidth}\raggedright
+\begin{quote}
+\textbf{Positional encoding} lyzes the position of informative symbols
+within an (Λ\emph{.,k})1\emph{≤k≤}max\_len : ana-
+
+emergent code. We assign a score Λ\emph{.,k} for each position \emph{k}
+that counts the proportion of informative symbols over all the messages
+of a language:
+\end{quote}
+\end{minipage}} \\
+\midrule()
+\endhead
+& 1 & & & (7) \\
+Λ\emph{.,k} = & \emph{N}(\emph{k}) & \emph{m∈M} &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+Λ\emph{m,k,}
+\end{quote}
+\end{minipage} & \\
+\bottomrule()
+\end{longtable}
+
+\begin{quote}
+where \emph{N}(\emph{k}) is the number of messages that have a symbol
+(different from EOS) at position \emph{k}.
+\end{quote}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}@{}}
+\toprule()
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Effective length}
+\end{minipage} &
+\multicolumn{5}{>{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.8333} + 8\tabcolsep}@{}}{%
+\begin{minipage}[b]{\linewidth}\raggedright
+\emph{Leff}: measures the mean number of
+\end{minipage}} \\
+\midrule()
+\endhead
+\multicolumn{6}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{1.0000} + 10\tabcolsep}@{}}{%
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+informative symbols by message:
+\end{quote}
+\end{minipage}} \\
+\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.3333} + 2\tabcolsep}}{%
+\multirow{2}{*}{\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+\emph{Leff} = 1\\
+\emph{N}
+\end{quote}\strut
+\end{minipage}}} & & \emph{l}(\emph{m})\emph{−}1 & & (8) \\
+& & \emph{m∈M} & \emph{k}=1 &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+Λ\emph{m,k.}
+\end{quote}
+\end{minipage} & \\
+\bottomrule()
+\end{longtable}
+
+\begin{quote}
+\emph{Leff} counts the average number of symbols Listener relies on
+(removing all the uninformative symbols for which Λ\emph{m,k} = 0). A
+message with only informative symbols would have \emph{Leff} =
+\emph{Ltype −}1.5
+\end{quote}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}@{}}
+\toprule()
+\multicolumn{6}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{1.0000} + 10\tabcolsep}@{}}{%
+\begin{minipage}[b]{\linewidth}\raggedright
+\begin{quote}
+\textbf{Information density}\emph{ρinf} : measures the fraction of
+
+informative symbols in a language:
+\end{quote}
+\end{minipage}} \\
+\midrule()
+\endhead
+\multirow{2}{*}{\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+\emph{ρinf} = 1 \emph{N}
+\end{quote}
+\end{minipage}} & & 1 & \emph{l}(\emph{m})\emph{−}1 &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+Λ
+\end{quote}
+\end{minipage} & \multirow{2}{*}{(9)} \\
+& \emph{m∈M} & \emph{l}(\emph{m}) \emph{−}1 & \emph{k}=1 &
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+Λ\emph{m,k}
+\end{quote}
+\end{minipage} \\
+\multicolumn{6}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{1.0000} + 10\tabcolsep}@{}}{%
+We integrate over the first \emph{l}(\emph{m}) \emph{−}1 positions as we
+1. If \emph{ρinf} = 1, messages are limited to the informative disregard
+EOS that occurs in all messages.60 \emph{≤ρinf ≤}symbols (all used by
+Listener to decode the message). The lower \emph{ρinf} is, the more
+non-informative symbols are in the message.} \\
+\bottomrule()
+\end{longtable}
+
+\begin{quote}
+As we do not have Listener when generating Optimal Coding, we compute
+these metrics for the latter refer-ence by considering all symbols, but
+EOS, informative.
+
+\textbf{4} \textbf{Results}
+
+In this section, we study the code of our new commu-nicative system,
+LazImpa, and compare it to the Stan-dard Agents baseline and the
+different reference distri-butions. We show that LazImpa leads to
+near-optimal and ZLA-compatible languages. Eventually, we demon-strate
+how both Impatience and Laziness are required to get human-level
+efficiency. All the quantitative results of the considered codes are
+gathered in Table 1.
+
+\textbf{4.1} \textbf{LazImpa vs. Standard Agents}
+\end{quote}
+
+We compare here LazImpa to the baseline system Stan-dard Agents both in
+terms of the length efficiency and the allocation of information.
+
+\begin{quote}
+5We subtract 1 as we disregard EOS in all messages. 6By convention, for
+the case where \emph{m}=(EOS),\sout{0} 0=1.
+
+\textbf{Length efficiency of the communication.} Contrary to Standard
+Agents, LazImpa develops an efficient com-munication as presented in
+Figure 3. Indeed, its average length of the messages is significantly
+lower than the Standard Agents system (average \emph{Ltype}=29\emph{.}6
+for Stan-dard Agents vs. \emph{Ltype}=5\emph{.}49 for LazImpa). The
+latter demonstrates length distributions almost constant and close to
+the maximum length we set (=30). We demon-strate in Appendix A.2.1 how
+the exploration of long messages in Standard Agents is key for agents'
+suc-cess in the reconstruction game, even though, in theory, shorter
+messages are sufficient.
+
+Interestingly, both systems do not only differ by their average length,
+but also by the distribution of messages length. Specifically, the
+Standard Agents system follows significantly an anti-ZLA distribution
+(see Appendix A.3.2 for quantitative support of this claim) while
+Laz-Impa has an average \emph{Ltoken}=3\emph{.}78 showing a ZLA
+pat-tern: the shortest messages are associated to the most frequent
+inputs. The randomization test gives quantita-tive support of this
+observation (\emph{pZLA \textless{}} 10\emph{−}5).
+
+\includegraphics[width=2.51111in,height=1.96667in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image3.png}
+
+Figure 3: Average message length across successful runs as a function of
+input frequency rank.
+
+\textbf{Informativeness of the communication.} When con-sidering how
+Standard Agents system allocates informa-tion, shown in Figure 4a, we
+can make two striking ob-servations. First, only a very small part of
+the messages are informative (on average \emph{ρinf} = 11\%). Therefore,
+even if long messages seem necessary for the agents to succeed, most of
+the symbols are not used by Listener. In particular, if \emph{Ltype} =
+29\emph{.}6 on average, the average number of symbols used by Standard
+Listener (\emph{Leff}) is only equal to 3\emph{.}33 (which is even
+smaller than nat-ural languages' mean message length \emph{Ltype} =
+5\emph{.}46). Surprisingly, we also observe that, if we restrict the
+messages to their informative symbols (i.e. removing positions \emph{k}
+with Λ\emph{k,.} = 0), the length statistics follow a ZLA-like
+distribution (see Figure 9 in Appendix A.2.2). Second, in all our
+experiments, the information is lo-calized at the very end of the
+messages. That is, there is almost no actual information in the messages
+about Speaker's inputs before the last symbols.
+
+Contrarily, Figure 4d shows a completely different
+\end{quote}
+
+339
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 0\tabcolsep) * \real{1.0000}}@{}}
+\toprule()
+\begin{minipage}[b]{\linewidth}\raggedright
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}@{}}
+\toprule()
+\begin{minipage}[b]{\linewidth}\raggedright
+Class
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Code
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\emph{Ltype}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\emph{Ltoken}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\emph{pZLA}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\emph{Leff}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\emph{ρinf}
+\end{minipage} \\
+\midrule()
+\endhead
+Emergent & \begin{minipage}[t]{\linewidth}\raggedright
+\begin{quote}
+Standard Agents LazImpa
+\end{quote}
+\end{minipage} & 29\emph{.}6 \emph{±} 0\emph{.}4 & 29\emph{.}91 \emph{±}
+0\emph{.}07 & \emph{\textgreater{}} 1 \emph{−}10\emph{−}5
+\emph{\textless{}} 10\emph{−}5* & 3\emph{.}33 \emph{±} 0\emph{.}46 &
+0\emph{.}11 \emph{±} 0\emph{.}02 \\
+\bottomrule()
+\end{longtable}
+
+\begin{quote}
+5\emph{.}49 \emph{±} 0\emph{.}67 3\emph{.}78 \emph{±} 0\emph{.}34
+2\emph{.}67 \emph{±} 0\emph{.}07 0\emph{.}60 \emph{±} 0\emph{.}07
+\end{quote}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 12\tabcolsep) * \real{0.1429}}@{}}
+\toprule()
+\begin{minipage}[b]{\linewidth}\raggedright
+References
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Mean natural languages Optimal Coding
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+5\emph{.}46 \emph{±} 0\emph{.}61 2\emph{.}96
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+3\emph{.}55 \emph{±} 0\emph{.}14 2\emph{.}29
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\begin{quote}
+\emph{\textless{}} 10\emph{−}5* \emph{\textless{}} 10\emph{−}5*
+\end{quote}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\begin{quote}
+/\\
+1\emph{.}96
+\end{quote}\strut
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\begin{quote}
+/\\
+1\emph{.}00
+\end{quote}\strut
+\end{minipage} \\
+\midrule()
+\endhead
+\bottomrule()
+\end{longtable}\strut
+\end{minipage} \\
+\midrule()
+\endhead
+\bottomrule()
+\end{longtable}
+
+Table 1: Efficiency and information analysis of emergent codes and
+reference distribution. For each metric, we
+
+report the mean value and the standard deviation when relevant (across
+seeds when experimenting with emergent
+
+\begin{quote}
+languages and across the natural languages presented in Section 3.1 for
+Mean natural languages). \emph{Ltype} is the mean message length,
+\emph{Ltoken} is the mean weighted message length, \emph{pZLA} the ZLA
+significance score, \emph{Leff} the effective length and \emph{ρinf} the
+information density. `/' indicates that the metric cannot be computed.
+For \emph{pZLA}, `*' indicates that the p-value is significant
+(\emph{\textless{}} 0\emph{.}001).
+
+\includegraphics[width=2.26805in,height=0.28333in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image4.png}
+\end{quote}
+
+(a) Standard Agents
+
+\begin{quote}
+\includegraphics[width=2.26805in,height=0.28333in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image4.png}
+\end{quote}
+
+\includegraphics[width=2.26806in,height=0.30833in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image5.png}
+
+(b) Standard Speaker + Impatient Listener
+
+\includegraphics[width=2.26806in,height=0.28194in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image6.png}
+
+\begin{quote}
+(c) Lazy Speaker + Standard Listener (d) LazImpa
+\end{quote}
+
+\includegraphics[width=1.13333in,height=0.18333in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image7.png}
+
+\begin{quote}
+Figure 4: Fraction of informative symbols at each position k averaged
+across all emergent messages of successful runs
+((Λ\emph{k,.})0\emph{≤k≤}29). Each box represents the proportion of
+informative symbols at a given position Λ\emph{k,.} mapped to a color
+according to a gray gradient (black=0 ; white=1). The red vertical lines
+mark the mean message length \emph{Ltype} across successful runs.
+
+spectrum for LazImpa. Indeed, Impatient Listener relies on \emph{ρinf} =
+60\% of the symbols. This corresponds to a big increase compared to
+\emph{ρinf} = 19\% when using Standard Agents. Yet, we are still far
+from the 100\% observed in Optimal Coding. That is, even with the
+introduction of a length cost (with Lazy Speaker), we still encounter
+non-informative symbols. Finally, these informative symbols are
+localized in the first positions, opposite to what we observed with
+Standard Agents. We will show in Section 4.3 how this immediate presence
+of information is crucial for the length reduction of the messages.
+
+In sum, if we consider only \emph{informative/effective} po-sitions,
+Standard Agents use efficient and ZLA-like (ef-fective) communicative
+protocol. However, they make it maximally long adding non-informative
+symbols at the beginning of each message. Introducing LazImpa re-verses
+the length distribution. Indeed, we observe with LazImpa the emergence
+of efficient and ZLA-obeying languages, with significantly larger
+\emph{ρinf}.
+
+\textbf{4.2} \textbf{LazImpa vs. reference distributions}
+\end{quote}
+
+We demonstrated above how LazImpa leads to codes with length
+significantly shorter than the one obtained with Standard Agents.
+
+\begin{quote}
+We compare it here with stricter references, namely natural languages
+and Optimal Coding. We show that LazImpa results in languages as
+efficient as natural lan-guages both in terms of length statistics and
+symbols distribution. However, agents do not manage to reach
+
+optimality.
+
+\textbf{Comparison with natural languages.} We see in Fig-ure 5a that
+the message lengths in the emergent com-munication are analogous to the
+words lengths in nat-ural languages: close average \emph{Ltoken} and
+\emph{Ltype} (see Table 1).
+
+We further compare their unigram distributions. Chaabouni et al. (2019)
+showed that Standard Agents develop repetitive messages with a skewed
+unigram dis-tribution. Our results, in Figure 5b, show that, on top of a
+ZLA-like code, LazImpa enables the emergence of natural-language-like
+unigram distribution, without any particular repetitive pattern.
+Intriguingly, this similarity with natural languages is an unexpected
+property as a uniform distribution of unigrams would lead to a more
+efficient protocol.
+
+\textbf{Comparison with Optimal Coding.} If LazImpa leads to
+significantly more efficient languages compared to Standard Agents,
+these emergent languages are still not as efficient as Optimal Coding
+(see Figure 3). One obvious source of sub-optimality is the addition of
+unin-formative symbols at the end of the messages (i.e. the difference
+between \emph{Leff}=2\emph{.}67 and \emph{Ltype}-1=4\emph{.}49).
+In-terestingly, when analyzing the intermediate predictions of Impatient
+Listener, we see that this model is actually able to guess the right
+input only reading approximately the \emph{Leff} first positions (see
+Appendix A.4.1 for details). However, we still can note that the
+informative length \emph{Leff} is slightly sub-optimal (\emph{Leff} =
+2\emph{.}67 for LazImpa, \emph{Leff} = 1\emph{.}96 for Optimal Coding).
+This difference
+\end{quote}
+
+340
+
+\begin{quote}
+\includegraphics[width=2.47222in,height=1.59306in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image8.png}
+
+\includegraphics[width=2.57222in,height=1.59306in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image9.png}
+\end{quote}
+
+\includegraphics[width=4.10278in,height=0.20833in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image10.png}
+
+\begin{quote}
+(a) Message length of natural languages and LazImpa (aver-
+
+aged across successful runs) as a function of input frequency (b)
+Unigrams distribution of natural languages and LazImpa
+
+rank. For readability, the curves have been smoothed using (averaged
+across successful messages) ranked by unigram
+
+a sliding average of 20 consecutive lengths, see the real frequency. The
+light blue interval shows 1 standard devia-
+
+curves in Appendix A.4.3. The light blue interval shows 1 tion for
+LazImpa's unigrams distribution.
+
+standard deviation for LazImpa's distribution.
+\end{quote}
+
+Figure 5: Comparison of LazImpa' statistics and natural languages.
+
+\begin{quote}
+can be explained by the non-uniform use of unigrams. Specifically, we
+show in Appendix A.4.1 that effec-tive lengths of LazImpa messages
+approximate Optimal Coding when the latter uses the same skewed unigram
+distribution.
+
+\textbf{4.3} \textbf{Ablation study}
+
+We have just seen that our new communication system LazImpa allows
+agents to develop an efficient and ZLA-obeying language whose
+statistical properties are close to those of natural languages. In this
+section, we analyze the effects of the modeling choices we have made.
+\end{quote}
+
+We first look at the effect of Laziness. To do so, we compare LazImpa to
+the system ``Standard Speaker + Impatient Listener'' (i.e. removing the
+length regulariza-tion). Figure 6a shows the joint evolution of the mean
+length of messages (\emph{Ltype}) and game accuracy. We observe that our
+non-regularized system, similarly to LazImpa, initially explores long
+messages while being more successful (exploration step). Surprisingly,
+even in the absence of Laziness, the exploration step does not continue
+to maximally long messages, as it is the case for Standard Agents, but
+breaks at length \emph{≈}20. However, \emph{contrary to LazImpa},
+``Standard Speaker + Impatient Listener'' does not present a reduction
+step (a reduction of mean length for a fixed good accuracy). Thus, as
+expected, the introduction of Laziness in Laz-Impa is responsible for
+the reduction step, and hence for a shorter and more efficient
+communication proto-col. However, we note in Figure 6b, that Impatience
+alone is sufficient for the emergence of ZLA. Moreover, when looking at
+the information spectrum, comparing``Standard Speaker + Impatient
+Listener'' (Figure 4b) to LazImpa (Figure 4d), we observe how alike both
+sys-tems allocate information and differ only by their mean length.
+
+\begin{quote}
+Second, we investigate the role of Impatience. We see in Figure 6a that
+the system ``Lazy Speaker + Standard Listener'' admits a visually
+different dynamic compared
+
+to LazImpa. In particular, the exploration step leads to significantly
+longer messages, close to max\_len. Interestingly, if we demonstrated
+above the necessity of Laziness for the reduction step, alone, it does
+not induce it: no reduction step in the ``Lazy Speaker + Standard
+Listener'' system is observed. This is due to the necessity of long
+messages when experimenting with Standard Listener. Specifically, as
+informative symbols are present only at the last positions (see Figure
+4c), introducing a length regularization provokes a drop in accuracy,
+which in turn cancels the regularization. In other words, the length
+regularization scheduling stops at the exploration step, which makes the
+system almost equivalent to Standard Agents (this could be also seen
+experimentally in Figures 6a and 6b).
+
+Taken together, our analysis emphasizes the impor-tance of both
+Impatience \emph{and} Laziness for the emer-gence of efficient
+communication.
+
+\textbf{5 Conclusion}
+
+We demonstrated that a standard communication sys-tem, where standard
+Speaker and Listener LSTMs are trained to solve a simple reconstruction
+game, leads to long messages, close to the maximal threshold.
+Sur-prisingly, if these messages are long, LSTM agents rely only on a
+small number of informative message sym-bols, located at the end. We
+then introduce LazImpa, a constrained system that consists of
+\emph{Laz}y Speaker and \emph{Impa}tient Listener. On the one hand, Lazy
+Speaker is obtained by introducing a cost on messages length once the
+communication is successful. We found that early exploration of
+potentially long messages is crucial for successful convergence (similar
+to the exploration in RL settings). On the other hand, Impatient
+Listener aims to succeed at the game as soon as possible, by predicting
+Speaker's input at each message's symbol.
+
+We show that both constraints are \emph{necessary} for the emergence of
+a ZLA-like protocol, as efficient as natu-ral languages. Specifically,
+Lazy Speaker alone would
+\end{quote}
+
+341
+
+\begin{quote}
+\includegraphics[width=2.27778in,height=1.45833in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image11.png}
+
+\includegraphics[width=2.50139in,height=1.49028in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image12.png}
+\end{quote}
+
+\includegraphics[width=5.79583in,height=0.16667in]{vertopal_1374b01df54549c6b109d9a67512de19/media/image13.png}
+
+\begin{quote}
+(a) Joint evolution of the accuracy and mean length
+(\emph{Ltype},accuracy) of one training episode. Arrows represent for
+the different models. Each point shows the couple the average joint
+evolution of the two variables. (b) Average message length as a function
+of input frequency rank for the different systems. Light color intervals
+show 1 standard deviation.\\
+Figure 6: Comparison of different communication systems.
+
+fail to shorten the messages. We connect this to the importance of the
+Impatience mechanism to locate use-ful information at the beginning of
+the messages. If the function of this mechanism is subject to a standing
+debate (e.g., Jackendoff, 2007; Anderson and Chemero, 2013), many prior
+works had pointed to its necessity to human language understanding
+(e.g., Friston, 2010; Clark, 2013). We augment this line of works and
+sug-gest that impatience could be at play in the emergence of
+ZLA-obeying languages. However, if impatience leads to ZLA, it is not
+sufficient for human-level effi-ciency. In other words, efficiency needs
+constraints \emph{both} on Speaker and Listener sides.
+\end{quote}
+
+Our work highlights the importance of introducing the right pressures in
+the communication system. In-deed, to construct automated agents that
+would eventu-ally interact with humans, we need to introduce
+task-agnostic constraints, allowing the emergence of more human-like
+communication. Moreover, while being general, LazImpa provides a more
+stable optimization compared to the unconstrained system. Finally, this
+study opens several lines of research. One would be to investigate
+further the gap from optimality. Indeed, while LazImpa emergent
+languages show human-level efficiency, they do not reach optimal coding.
+Specif-ically, emergent languages still have non-informative symbols at
+the end of the messages. If these additional non-useful symbols drift
+the protocol from optimality, we encounter similar trend in human
+(Marslen-Wilson, 1987) and animal communication (McLachlan and Ma-grath,
+2020). We leave the understanding of the role of these non-informative
+symbols and how we can reach optimal coding for future works. A second
+line of re-search would be to apply this system to other games or NLP
+problems and study how it affects other properties of the language such
+as regularity or compositionality.
+
+\begin{quote}
+\textbf{Acknowledgments}
+
+We would like to thank Emmanuel Chemla, Marco Ba-roni, Eugene
+Kharitonov, and the anonymous reviewers for helpful comments and
+suggestions.
+
+This work was funded in part by the European Research Council
+(ERC-2011-AdG-295810 BOOT-PHON), the Agence Nationale pour la Recherche
+(ANR-17-EURE-0017 Frontcog, ANR-10-IDEX-0001-02 PSL*, ANR-19-P3IA-0001
+PRAIRIE 3IA Insti-tute) and grants from CIFAR (Learning in Machines and
+Brains), Facebook AI Research (Research Grant), Google (Faculty Research
+Award), Microsoft Research (Azure Credits and Grant), and Amazon Web
+Service (AWS Research Credits).
+
+\textbf{References}
+
+Gerry TM Altmann and Jelena Mirkovi´c. 2009. Incre-mentality and
+prediction in human sentence process-ing. \emph{Cognitive science},
+33(4):583--609.
+
+Michael L Anderson and Tony Chemero. 2013. The problem with brain guts:
+Conflation of different senses of'' prediction'' threatens metaphysical
+disaster. \emph{Behavioral and Brain Sciences}, 36(3):204.
+
+Diane Bouchacourt and Marco Baroni. 2018. How agents see things: On
+visual representations in an emergent language game. pages 981--985.
+
+Rahma Chaabouni, Eugene Kharitonov, Diane Boucha-court, Emmanuel Dupoux,
+and Marco Baroni. 2020. Compositionality and generalization in emergent
+lan-guages. \emph{arXiv preprint arXiv:2004.09124}.
+
+Rahma Chaabouni, Eugene Kharitonov, Emmanuel Dupoux, and Marco Baroni.
+2019. Anti-efficient encoding in emergent communication.
+
+Andy Clark. 2013. Whatever next? predictive brains, situated agents, and
+the future of cognitive science. \emph{Behavioral and brain sciences},
+36(3):181--204.
+
+Thomas Cover and Joy Thomas. 2006. \emph{Elements of Information Theory,
+2nd ed.} Wiley, Hoboken, NJ.
+
+Kara D Federmeier. 2007. Thinking ahead: The role and roots of
+prediction in language comprehension. \emph{Psychophysiology},
+44(4):491--505.
+\end{quote}
+
+342
+
+Ramon Ferrer i Cancho, Antoni Hern´andez-Fern´andez, David Lusseau,
+Govindasamy Agoramoorthy, Minna Hsu, and Stuart Semple. 2013.
+Compression as a universal principle of animal behavior. \emph{Cognitive
+Science}, 37(8):1565--1578.
+
+Karl Friston. 2010. The free-energy principle: a uni- fied brain theory?
+\emph{Nature reviews neuroscience}, 11(2):127--138.
+
+Edward Gibson, Richard Futrell, Steven P Piantadosi, Isabelle Dautriche,
+Kyle Mahowald, Leon Bergen, and Roger Levy. 2019. How efficiency shapes
+human language. \emph{Trends in cognitive sciences}, 23(5):389--407.
+
+Serhii Havrylov and Ivan Titov. 2017. Emergence of language with
+multi-agent games: Learning to com-municate with sequences of symbols.
+pages 2149--2159.
+
+Sepp Hochreiter and J¨urgen Schmidhuber. 1997. Long short-term memory.
+\emph{Neural computation}, 9(8):1735--1780.
+
+Ray Jackendoff. 2007. A parallel architecture perspec-tive on language
+processing. \emph{Brain research}, 1146:2--22.
+
+Jasmeen Kanwal, Kenny Smith, Jennifer Culbertson, and Simon Kirby. 2017.
+Zipf's law of abbreviation and the principle of least effort: Language
+users opti- mise a miniature lexicon for efficient communication.
+\emph{Cognition}, 165:45--52. Copyright c B.V. All rights reserved.
+\emph{⃝}2017 Elsevier
+
+Eugene Kharitonov, Rahma Chaabouni, Diane Boucha-court, and Marco
+Baroni. 2019. EGG: a toolkit for research on emergence of language in
+games. In \emph{Proceedings of EMNLP (System Demonstrations)}.
+
+Diederik P. Kingma and Jimmy Ba. 2014. Adam: A method for stochastic
+optimization.
+
+Simon Kirby. 2001. Spontaneous evolution of linguistic structure-an
+iterated learning model of the emergence of regularity and irregularity.
+\emph{IEEE Transactions on Evolutionary Computation}, 5(2):102--110.
+
+Satwik Kottur, Jos´e Moura, Stefan Lee, and Dhruv Batra. 2017. Natural
+language does not emerge `naturally'in multi-agent dialog.
+
+Angeliki Lazaridou, Karl Moritz Hermann, Karl Tuyls, and Stephen Clark.
+2018. Emergence of linguistic communication from referential games with
+symbolic and pixel input.
+
+Angeliki Lazaridou, Alexander Peysakhovich, and Marco Baroni. 2017.
+Multi-agent cooperation and the emergence of (natural) language.
+Published online: https://openreview.net/group?id=
+ICLR.cc/2017/conference.
+
+David Lewis. 1969. \emph{Convention}. Harvard University Press,
+Cambridge, MA.
+
+\begin{quote}
+William D Marslen-Wilson. 1987. Functional paral-lelism in spoken
+word-recognition. \emph{Cognition}, 25(1-2):71--102.
+
+Jessica R McLachlan and Robert D Magrath. 2020. Speedy revelations: how
+alarm calls can convey rapid, reliable information about urgent danger.
+\emph{Proceed-ings of the Royal Society B}, 287(1921):20192772.
+
+Steven T Piantadosi, Harry Tily, and Edward Gibson. 2011. Word lengths
+are optimized for efficient com-munication. \emph{Proceedings of the
+National Academy of Sciences}, 108(9):3526--3529.
+
+John Schulman, Nicolas Heess, Theophane Weber, and Pieter Abbeel. 2015.
+Gradient estimation using stochastic computation graphs. In
+\emph{Proceedings of the 28th International Conference on Neural
+Informa-} \emph{tion Processing Systems - Volume 2}, page 3528--3536,
+Cambridge, MA, USA. MIT Press.
+
+Bengt Sigurd, Mats Eeg-Olofsson, and Joost Van Weijer. 2004. Word
+length, sentence length and frequency--zipf revisited. \emph{Studia
+Linguistica}, 58(1):37--52.
+
+Udo Strauss, Peter Grzybek, and Gabriel Altmann. 2007. Word length and
+word frequency. In \emph{Contributions to the science of text and
+language}, pages 277--294. Springer.
+
+William J Teahan, Yingying Wen, Rodger McNab, and Ian H Witten. 2000. A
+compression-based algorithm for chinese word segmentation.
+\emph{Computational Lin-guistics}, 26(3):375--393.
+
+Ronald Williams and Jing Peng. 1991. Function opti-mization using
+connectionist reinforcement learning algorithms. \emph{Connection
+Science}, 3:241--.
+
+Ronald J. Williams. 1992. Simple statistical gradient-following
+algorithms for connectionist reinforcement learning. \emph{Machine
+Learning}, 8(3):229--256.
+
+George Zipf. 1949. \emph{Human Behavior and the Principle of Least
+Effort}. Addison-Wesley, Boston, MA.
+
+George Kingsley Zipf. 2013. \emph{The psycho-biology of lan-guage: An
+introduction to dynamic philology}. Rout-ledge.
+\end{quote}
+
+343
+
+\end{document}

@@ -114,71 +114,31 @@ def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
 #     - crible_acc: accuracy by position | size=(batch_size,max_len)
 #     """
 
-#     # 1. len_mask selects only the symbols before EOS-token
-#     device = _message.device
-#     to_onehot=torch.eye(_message.size(1)).to(device)
-#     to_onehot=torch.cat((to_onehot,torch.zeros((1,_message.size(1))).to(device)),0)
-#     len_mask=[]
-#     for i in range(message_length.size(0)):
-#       len_mask.append(to_onehot[message_length[i]])
-#     len_mask=torch.stack(len_mask,dim=0)
-
-#     len_mask=torch.cumsum(len_mask,dim=1)
-#     len_mask=torch.ones(len_mask.size()).to(device).add_(-len_mask)
-
-#     # 2. coef applies weights on each position. By default it is equal
-#     coef=(1/message_length.to(float)).repeat(_message.size(1),1).transpose(1,0) # useless ?
-#     coef2=coef # useless ?
-#     len_mask.mul_((coef2)) # useless ?
-#     len_mask.mul_((1/len_mask.sum(1)).repeat((_message.size(1),1)).transpose(1,0))
-
-#     # Test: change positional weights
-#     # coef2=coef*torch.arange(_message.size(1),0,-1).repeat(_message.size(0),1).to("cuda")
-#     # This linearly decreases weight with position — i.e. earlier positions get higher weight
-
-#     # 3. crible_acc gathers accuracy for each input/position, crible_loss gathers losses for each input/position
-#     crible_acc=torch.zeros(size=_message.size()).to(device)
-#     crible_loss=torch.zeros(size=_message.size()).to(device)
-
-#     for i in range(receiver_output.size(1)):
-#       crible_acc[:,i].add_((receiver_output[:,i,:].argmax(dim=1) == sender_input.argmax(dim=1)).detach().float())
-#       crible_loss[:,i].add_(F.cross_entropy(receiver_output[:,i,:], sender_input.argmax(dim=1), reduction="none"))
-
-#     # 4. Apply mask to remove the positions after EOS-token
-#     acc=crible_acc*len_mask
-#     loss=crible_loss*len_mask
-
-#     acc = acc.sum(1)
-#     loss= loss.sum(1)
-
-#     return loss, {'acc': acc}, crible_acc
-
-def loss_impatient(sender_input, _message, message_length, _receiver_input, receiver_output, _labels, gamma=1.0):
-
-    # Step 1: same as before — build len_mask (valid positions only)
-    to_onehot = torch.eye(_message.size(1)).to("cuda")
-    to_onehot = torch.cat((to_onehot, torch.zeros((1, _message.size(1))).to("cuda")), 0)
-    len_mask = []
+    # 1. len_mask selects only the symbols before EOS-token
+    device = _message.device
+    to_onehot=torch.eye(_message.size(1)).to(device)
+    to_onehot=torch.cat((to_onehot,torch.zeros((1,_message.size(1))).to(device)),0)
+    len_mask=[]
     for i in range(message_length.size(0)):
-        len_mask.append(to_onehot[message_length[i]])
-    len_mask = torch.stack(len_mask, dim=0)
-    len_mask = torch.cumsum(len_mask, dim=1)
-    len_mask = torch.ones(len_mask.size()).to("cuda").add_(-len_mask)
+      len_mask.append(to_onehot[message_length[i]])
+    len_mask=torch.stack(len_mask,dim=0)
 
-    # Step 2 (MODIFIED): apply exponential positional decay
-    # positions: 0, 1, 2, ..., max_len-1
-    # weight at position k = gamma^k  →  if gamma<1, earlier positions have higher weight
-    positions = torch.arange(_message.size(1), dtype=torch.float).to("cuda")  # [0,1,...,T-1]
-    decay = gamma ** positions                                                   # [1, γ, γ², ...]
-    decay = decay.unsqueeze(0).repeat(_message.size(0), 1)                      # (batch, T)
-    
-    len_mask = len_mask * decay   # zero out post-EOS, apply decay to valid positions
-    # Renormalize so weights sum to 1 per message (makes loss scale-invariant)
-    len_mask = len_mask / (len_mask.sum(1, keepdim=True) + 1e-8)
+    len_mask=torch.cumsum(len_mask,dim=1)
+    len_mask=torch.ones(len_mask.size()).to(device).add_(-len_mask)
 
-    # Steps 3-4: identical to original
-    crible_acc = torch.zeros(size=_message.size()).to("cuda")
-    crible_loss = torch.zeros(size=_message.size()).to("cuda")
+    # 2. coef applies weights on each position. By default it is equal
+    coef=(1/message_length.to(float)).repeat(_message.size(1),1).transpose(1,0) # useless ?
+    coef2=coef # useless ?
+    len_mask.mul_((coef2)) # useless ?
+    len_mask.mul_((1/len_mask.sum(1)).repeat((_message.size(1),1)).transpose(1,0))
+
+    # Test: change positional wieghts
+    #coef2=coef*torch.arange(_message.size(1),0,-1).repeat(_message.size(0),1).to("cuda")
+
+
+    # 3. crible_acc gathers accuracy for each input/position, crible_loss gathers losses for each input/position
+    crible_acc=torch.zeros(size=_message.size()).to(device)
+    crible_loss=torch.zeros(size=_message.size()).to(device)
 
     for i in range(receiver_output.size(1)):
         crible_acc[:, i].add_((receiver_output[:, i, :].argmax(dim=1) == sender_input.argmax(dim=1)).detach().float())

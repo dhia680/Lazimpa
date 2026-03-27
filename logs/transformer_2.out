@@ -1,0 +1,21 @@
+ERROR: Unable to locate a modulefile for 'python/3.9'
+ERROR: Unable to locate a modulefile for 'pytorch/2.0'
+========================================================================
+LAZIMPA TRANSFORMER ARRAY - Task 2 of 20
+========================================================================
+Job ID: 729948.2
+Started on qa-a10-034.crc.nd.edu at Tue Mar 24 03:25:54 PM EDT 2026
+========================================================================
+
+Running: transformer_baseline with seed 123
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/users/aquisper/Lazimpa/egg/zoo/channel/train.py", line 9, in <module>
+    import torch.utils.data
+ModuleNotFoundError: No module named 'torch'
+
+========================================================================
+Task 2 finished at Tue Mar 24 03:25:54 PM EDT 2026
+========================================================================

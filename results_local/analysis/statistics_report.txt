@@ -1,0 +1,58 @@
+================================================================================
+COMPARATIVE ANALYSIS: LSTM vs TRANSFORMER
+================================================================================
+
+
+LSTM BASELINE
+--------------------------------------------------------------------------------
+Final Accuracy: 0.0467 ± 0.0024 (n=3 seeds)
+Message Length: 14.84 ± 1.51
+  Min: 0, Max: 15
+  ZLA Compliance: ✓ YES
+    Most frequent 25%: 14.35 avg length
+    Least frequent 25%: 15.00 avg length
+
+LSTM LAZIMPA
+--------------------------------------------------------------------------------
+Final Accuracy: 0.0467 ± 0.0024 (n=3 seeds)
+Message Length: 14.84 ± 1.51
+  Min: 0, Max: 15
+  ZLA Compliance: ✓ YES
+    Most frequent 25%: 14.35 avg length
+    Least frequent 25%: 15.00 avg length
+
+TRANSFORMER BASELINE
+--------------------------------------------------------------------------------
+Final Accuracy: 0.0417 ± 0.0125 (n=3 seeds)
+Message Length: 11.10 ± 5.40
+  Min: 0, Max: 15
+  ZLA Compliance: ✓ YES
+    Most frequent 25%: 3.17 avg length
+    Least frequent 25%: 15.00 avg length
+
+TRANSFORMER LAZIMPA
+--------------------------------------------------------------------------------
+Final Accuracy: 0.0417 ± 0.0125 (n=3 seeds)
+Message Length: 11.10 ± 5.40
+  Min: 0, Max: 15
+  ZLA Compliance: ✓ YES
+    Most frequent 25%: 3.17 avg length
+    Least frequent 25%: 15.00 avg length
+
+================================================================================
+DIRECT COMPARISONS
+================================================================================
+
+Baseline Comparison:
+  LSTM length: 14.84 ± 1.51
+  Transformer length: 11.10 ± 5.40
+  Difference: -3.73
+
+LazImpa Comparison:
+  LSTM length: 14.84 ± 1.51
+  Transformer length: 11.10 ± 5.40
+  Difference: -3.73
+
+  → NOVEL RESULT: First comparison of Transformer-based LazImpa!
+
+================================================================================

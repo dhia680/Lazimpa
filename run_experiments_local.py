@@ -1,0 +1,271 @@
+#!/usr/bin/env python
+"""
+Local MacBook experiment runner (CPU-friendly).
+Runs experiments sequentially with progress tracking.
+"""
+
+import json
+import os
+import argparse
+from pathlib import Path
+import subprocess
+import time
+from datetime import datetime
+import sys
+
+def generate_command_args(experiment_name, config, common_params, arch_config, seed):
+    """Generate training command arguments for a single experiment run."""
+
+    # Merge all configs
+    params = {**common_params, **arch_config, **config}
+
+    # Build argument list
+    args = []
+
+    # Fields to exclude (metadata, not training params)
+    exclude_fields = ['description', 'architecture']
+
+    # Flags that use action='store_true' (no value needed, just include flag if True)
+    store_true_flags = ['causal_sender', 'causal_receiver', 'no_cuda']
+
+    # Add all parameters
+    for key, value in params.items():
+        if key in exclude_fields:
+            continue
+        if isinstance(value, bool):
+            if key in store_true_flags:
+                # For action='store_true' flags, only include if True
+                if value:
+                    args.append(f"--{key}")
+            else:
+                # For type=bool flags (impatient, reg, no_cuda), always pass value
+                args.append(f"--{key}={1 if value else 0}")
+        else:
+            args.append(f"--{key}={value}")
+
+    # Add experiment-specific params
+    args.append(f"--random_seed={seed}")
+    args.append(f"--dir_save=results_local/{experiment_name}/seed_{seed}")
+    args.append(f"--name={experiment_name}_seed{seed}")
+
+    return args
+
+def run_experiment(exp_name, seed, args, total_runs, current_run):
+    """Run a single experiment with logging."""
+
+    # Create all required directories
+    base_dir = Path(f'results_local/{exp_name}/seed_{seed}')
+    (base_dir / 'logs').mkdir(parents=True, exist_ok=True)
+    (base_dir / 'sender').mkdir(parents=True, exist_ok=True)
+    (base_dir / 'receiver').mkdir(parents=True, exist_ok=True)
+    (base_dir / 'messages').mkdir(parents=True, exist_ok=True)
+    (base_dir / 'accuracy').mkdir(parents=True, exist_ok=True)
+
+    log_file = base_dir / 'logs' / 'training.log'
+
+    # Print progress
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print(f"\n{'='*70}")
+    print(f"[{timestamp}] Run {current_run}/{total_runs}")
+    print(f"Experiment: {exp_name} | Seed: {seed}")
+    print(f"Log: {log_file}")
+    print(f"{'='*70}\n")
+
+    # Run experiment
+    start_time = time.time()
+
+    with open(log_file, 'w') as f:
+        # Write header
+        f.write(f"Experiment: {exp_name}\n")
+        f.write(f"Seed: {seed}\n")
+        f.write(f"Device: CPU (MacBook)\n")
+        f.write(f"Started: {timestamp}\n")
+        f.write(f"{'='*70}\n\n")
+        f.flush()
+
+        # Run training
+        result = subprocess.run(
+            ['python', '-m', 'egg.zoo.channel.train'] + args,
+            stdout=f,
+            stderr=subprocess.STDOUT,
+            text=True
+        )
+
+    elapsed = time.time() - start_time
+    elapsed_str = f"{elapsed/60:.1f} min" if elapsed > 60 else f"{elapsed:.1f} sec"
+
+    if result.returncode == 0:
+        print(f"✓ Completed successfully in {elapsed_str}")
+        return True, elapsed
+    else:
+        print(f"✗ Failed with return code {result.returncode} after {elapsed_str}")
+        print(f"  Check log: {log_file}")
+        return False, elapsed
+
+def estimate_runtime(total_runs):
+    """Estimate total runtime based on test runs."""
+    # Based on medium test: ~10-15 min per run on MacBook CPU
+    min_per_run = 12  # Average estimate
+    total_min = total_runs * min_per_run
+    total_hours = total_min / 60
+    return total_hours
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', type=str, default='experiments_config_local.json',
+                       help='Path to experiments configuration JSON')
+    parser.add_argument('--experiments', nargs='+', default=None,
+                       help='Specific experiments to run (default: all)')
+    parser.add_argument('--dry-run', action='store_true',
+                       help='Print experiment plan without running')
+    parser.add_argument('--resume', action='store_true',
+                       help='Skip already completed experiments')
+    args = parser.parse_args()
+
+    # Load configuration
+    if not Path(args.config).exists():
+        print(f"Error: Config file not found: {args.config}")
+        print(f"\nAvailable configs:")
+        for cfg in Path('.').glob('experiments_config*.json'):
+            print(f"  - {cfg}")
+        sys.exit(1)
+
+    with open(args.config, 'r') as f:
+        config = json.load(f)
+
+    common_params = config['common_params']
+    arch_configs = config['architecture_configs']
+    experiments = config['experiments']
+    seeds = config['seeds']
+
+    # Filter experiments if specified
+    if args.experiments:
+        experiments = {k: v for k, v in experiments.items() if k in args.experiments}
+
+    # Build experiment queue
+    experiment_queue = []
+    for exp_name, exp_config in experiments.items():
+        # Make a copy to avoid modifying the original
+        exp_config_copy = exp_config.copy()
+        arch_name = exp_config_copy.pop('architecture')
+        arch_config = arch_configs[arch_name]
+
+        for seed in seeds:
+            cmd_args = generate_command_args(exp_name, exp_config_copy, common_params, arch_config, seed)
+            experiment_queue.append({
+                'name': exp_name,
+                'seed': seed,
+                'args': cmd_args,
+                'description': exp_config.get('description', '')
+            })
+
+    total_runs = len(experiment_queue)
+
+    # Print summary
+    print(f"\n{'='*70}")
+    print(f"LOCAL EXPERIMENT QUEUE (MacBook CPU)")
+    print(f"{'='*70}")
+    print(f"Config: {args.config}")
+    print(f"Total runs: {total_runs} ({len(experiments)} experiments × {len(seeds)} seeds)")
+    print(f"Device: CPU (no CUDA)")
+    print(f"{'='*70}\n")
+
+    print("Experiments:")
+    for exp in experiments.keys():
+        print(f"  • {exp}: {len(seeds)} seeds")
+
+    if args.dry_run:
+        print(f"\n[DRY RUN] - No experiments will be executed")
+        for i, job in enumerate(experiment_queue, 1):
+            print(f"{i:3d}. {job['name']:<30s} seed={job['seed']}")
+        return
+
+    # Estimate runtime
+    estimated_hours = estimate_runtime(total_runs)
+    print(f"\nEstimated runtime: ~{estimated_hours:.1f} hours (~{estimated_hours*60/total_runs:.0f} min per run)")
+
+    # Confirm before starting
+    response = input(f"\nProceed with experiments? [y/N]: ")
+    if response.lower() not in ['y', 'yes']:
+        print("Aborted.")
+        return
+
+    # Run experiments
+    print(f"\n{'='*70}")
+    print(f"STARTING EXPERIMENTS")
+    print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{'='*70}\n")
+
+    start_time = time.time()
+    successful = 0
+    failed = 0
+    runtimes = []
+
+    for i, job in enumerate(experiment_queue, 1):
+        # Check if already completed (resume mode)
+        if args.resume:
+            result_dir = Path(f"results_local/{job['name']}/seed_{job['seed']}")
+            if result_dir.exists() and (result_dir / 'messages').exists():
+                print(f"[{i}/{total_runs}] Skipping {job['name']} seed {job['seed']} (already completed)")
+                successful += 1
+                continue
+
+        # Run experiment
+        success, elapsed = run_experiment(
+            job['name'],
+            job['seed'],
+            job['args'],
+            total_runs,
+            i
+        )
+
+        if success:
+            successful += 1
+            runtimes.append(elapsed)
+
+            # Update time estimate
+            if len(runtimes) >= 3:
+                avg_runtime = sum(runtimes) / len(runtimes)
+                remaining = total_runs - i
+                eta_seconds = avg_runtime * remaining
+                eta_hours = eta_seconds / 3600
+                print(f"  ETA for remaining {remaining} runs: ~{eta_hours:.1f} hours")
+        else:
+            failed += 1
+
+    # Final summary
+    total_time = time.time() - start_time
+    print(f"\n{'='*70}")
+    print(f"EXPERIMENTS COMPLETE")
+    print(f"{'='*70}")
+    print(f"Successful: {successful}/{total_runs}")
+    print(f"Failed: {failed}/{total_runs}")
+    print(f"Total time: {total_time/3600:.2f} hours")
+    print(f"Avg time per run: {total_time/total_runs/60:.1f} min")
+    print(f"Finished: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{'='*70}\n")
+
+    # Save summary
+    summary_file = Path('results_local/experiment_summary.json')
+    summary_file.parent.mkdir(exist_ok=True)
+
+    summary = {
+        'total_runs': total_runs,
+        'successful': successful,
+        'failed': failed,
+        'total_time_hours': total_time / 3600,
+        'avg_time_per_run_minutes': total_time / total_runs / 60,
+        'experiments': list(experiments.keys()),
+        'seeds': seeds,
+        'timestamp': datetime.now().isoformat(),
+        'device': 'CPU (MacBook)'
+    }
+
+    with open(summary_file, 'w') as f:
+        json.dump(summary, f, indent=2)
+
+    print(f"Summary saved to: {summary_file}")
+    print(f"\nResults directory: results_local/")
+
+if __name__ == '__main__':
+    main()
