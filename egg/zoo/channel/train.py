@@ -19,10 +19,6 @@ from egg.core.util import dump_sender_receiver_impatient
 
 def get_params(params):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--impatience_gamma', type=float, default=1.0,
-                        help='Exponential decay factor for impatience positional weights. '
-                         '1.0=uniform (paper default), <1.0=earlier positions weighted more, '
-                         '>1.0=later positions weighted more (approaches standard listener)')
     parser.add_argument('--n_features', type=int, default=10,
                         help='Dimensionality of the "concept" space (default: 10)')
     parser.add_argument('--batches_per_epoch', type=int, default=1000,
@@ -97,22 +93,22 @@ def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
     loss = F.cross_entropy(receiver_output, sender_input.argmax(dim=1), reduction="none")
     return loss, {'acc': acc}
 
-# def loss_impatient(sender_input, _message, message_length, _receiver_input, receiver_output, _labels):
+def loss_impatient(sender_input, _message, message_length, _receiver_input, receiver_output, _labels):
 
-#     """
-#     Compute the loss function for the Impatient Listener.
-#     It is equal to the average cross entropy of all the intermediate predictions
+    """
+    Compute the loss function for the Impatient Listener.
+    It is equal to the average cross entropy of all the intermediate predictions
 
-#     Params:
-#     - sender_input: ground truth 1-hot vector | size=(batch_size,n_features)
-#     - receiver_output: receiver predictions | size=(batch_size,max_len,n_features)
-#     - message_lengh: message length | size=(batch_size)
+    Params:
+    - sender_input: ground truth 1-hot vector | size=(batch_size,n_features)
+    - receiver_output: receiver predictions | size=(batch_size,max_len,n_features)
+    - message_lengh: message length | size=(batch_size)
 
-#     Returns:
-#     - loss: |  size= ????
-#     - {acc:acc}: mean accuracy | size=(batch_size)
-#     - crible_acc: accuracy by position | size=(batch_size,max_len)
-#     """
+    Returns:
+    - loss: |  size= ????
+    - {acc:acc}: mean accuracy | size=(batch_size)
+    - crible_acc: accuracy by position | size=(batch_size,max_len)
+    """
 
     # 1. len_mask selects only the symbols before EOS-token
     device = _message.device
@@ -141,14 +137,65 @@ def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
     crible_loss=torch.zeros(size=_message.size()).to(device)
 
     for i in range(receiver_output.size(1)):
-        crible_acc[:, i].add_((receiver_output[:, i, :].argmax(dim=1) == sender_input.argmax(dim=1)).detach().float())
-        crible_loss[:, i].add_(F.cross_entropy(receiver_output[:, i, :], sender_input.argmax(dim=1), reduction="none"))
+      crible_acc[:,i].add_((receiver_output[:,i,:].argmax(dim=1) == sender_input.argmax(dim=1)).detach().float())
+      crible_loss[:,i].add_(F.cross_entropy(receiver_output[:,i,:], sender_input.argmax(dim=1), reduction="none"))
 
-    acc = (crible_acc * len_mask).sum(1)
-    loss = (crible_loss * len_mask).sum(1)
+    # 4. Apply mask to remove the positions after EOS-token
+    acc=crible_acc*len_mask
+    loss=crible_loss*len_mask
+
+    acc = acc.sum(1)
+    loss= loss.sum(1)
 
     return loss, {'acc': acc}, crible_acc
 
+#def loss_impatient2(sender_input, _message, message_length, _receiver_input, receiver_output, _labels):
+
+#    to_onehot=torch.eye(_message.size(1)).to("cuda")
+#    to_onehot=torch.cat((to_onehot,torch.zeros((1,_message.size(1))).to("cuda")),0)
+#    len_mask=[]
+#    len_mask2=[]
+#    for i in range(message_length.size(0)):
+#      len_mask.append(to_onehot[message_length[i]])
+#      len_mask2.append(to_onehot[message_length[i]-1])
+#    len_mask=torch.stack(len_mask,dim=0)
+#    len_mask2=torch.stack(len_mask2,dim=0)
+
+#    coef=(1/message_length.to(float)).repeat(_message.size(1),1).transpose(1,0)
+#    coef2=coef*torch.arange(_message.size(1),0,-1).repeat(_message.size(0),1).to("cuda")
+
+#    len_mask=torch.cumsum(len_mask,dim=1)
+#    len_mask=torch.ones(len_mask.size()).to("cuda").add_(-len_mask)
+
+#    len_mask.mul_((coef2))
+#    len_mask.mul_((1/len_mask.sum(1)).repeat((_message.size(1),1)).transpose(1,0))
+
+#    crible_acc=torch.zeros(size=_message.size()).to("cuda")
+#    crible_loss=torch.zeros(size=_message.size()).to("cuda")
+
+#    for i in range(receiver_output.size(1)):
+#      crible_acc[:,i].add_((receiver_output[:,i,:].argmax(dim=1) == sender_input.argmax(dim=1)).detach().float())
+#      crible_loss[:,i].add_(F.cross_entropy(receiver_output[:,i,:], sender_input.argmax(dim=1), reduction="none"))
+
+#    acc=crible_acc*len_mask
+#    loss=crible_loss*len_mask
+
+#    acc2=crible_acc*len_mask2
+#    loss2=crible_loss*len_mask2
+#    loss2=torch.cumsum(loss2,dim=1)
+#    acc2=torch.cumsum(acc2,dim=1)
+
+#    loss.add_(loss2)
+#    acc.add_(acc2)
+
+    # Moyenne
+#    loss.mul_(torch.ones(len_mask.size()).to("cuda")*(1/crible_loss.size(1)))
+#    acc.mul_(torch.ones(len_mask.size()).to("cuda")*(1/crible_loss.size(1)))
+
+#    acc = acc.sum(1)
+#    loss= loss.sum(1)
+
+#    return loss, {'acc': acc}, crible_acc
 
 def dump(game, n_features, device, gs_mode, epoch):
     # tiny "dataset"
@@ -249,12 +296,8 @@ def main(params):
         probs = np.array([float(x) for x in opts.probs.split(',')], dtype=np.float32)
 
     probs /= probs.sum()
-    print('the probs are: ', probs, flush=True)
 
-    # In main(), after parsing opts:
-    gamma = opts.impatience_gamma
-    def loss_impatient_gamma(sender_input, _message, message_length, _receiver_input, receiver_output, _labels):
-        return loss_impatient(sender_input, _message, message_length, _receiver_input, receiver_output, _labels, gamma=gamma)
+    print('the probs are: ', probs, flush=True)
 
     train_loader = OneHotLoader(n_features=opts.n_features, batch_size=opts.batch_size,
                                 batches_per_epoch=opts.batches_per_epoch, probs=probs)
@@ -327,8 +370,7 @@ def main(params):
                                            receiver_entropy_coeff=opts.receiver_entropy_coeff,
                                            length_cost=opts.length_cost,unigram_penalty=opts.unigram_pen,reg=opts.reg)
     else:
-        # using loss_impatient_gamma instead of loss_impatient when building the game:
-        game = SenderImpatientReceiverRnnReinforce(sender, receiver, loss_impatient_gamma, sender_entropy_coeff=opts.sender_entropy_coeff,
+        game = SenderImpatientReceiverRnnReinforce(sender, receiver, loss_impatient, sender_entropy_coeff=opts.sender_entropy_coeff,
                                            receiver_entropy_coeff=opts.receiver_entropy_coeff,
                                            length_cost=opts.length_cost,unigram_penalty=opts.unigram_pen,reg=opts.reg)
 
