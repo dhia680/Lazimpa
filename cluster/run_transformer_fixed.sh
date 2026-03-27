@@ -5,11 +5,11 @@
 #$ -pe smp 8                     # 8 CPU cores (faster data loading)
 #$ -q gpu@@crc_a10               # Request A10 GPUs (24GB, fast) - or use @crc_rtx6k
 #$ -l gpu_card=1                 # 1 GPU card per job
-#$ -t 1-2                        # Array job: 2 tasks (2 LSTM experiments × 1 seed)
-#$ -N lstm_fixed                 # Job name
+#$ -t 1-2                        # Array job: 2 tasks (2 Transformer experiments × 1 seed)
+#$ -N transformer_fixed          # Job name
 #$ -l h_rt=24:00:00              # Max 24 hours per job
-#$ -o logs/lstm_$TASK_ID.out
-#$ -e logs/lstm_$TASK_ID.err
+#$ -o logs/transformer_$TASK_ID.out
+#$ -e logs/transformer_$TASK_ID.err
 
 # ============================================================
 # Load Conda Environment: lazimpa
@@ -23,7 +23,7 @@ export CUDA_VISIBLE_DEVICES=0
 
 # Print job info
 echo "========================================================================"
-echo "LAZIMPA LSTM FIXED - Task $SGE_TASK_ID of $SGE_TASK_LAST"
+echo "LAZIMPA TRANSFORMER FIXED - Task $SGE_TASK_ID of $SGE_TASK_LAST"
 echo "========================================================================"
 echo "Job ID: $JOB_ID.$SGE_TASK_ID"
 echo "Started on $(hostname) at $(date)"
@@ -38,8 +38,8 @@ cd $HOME/Lazimpa
 # Create logs directory if needed
 mkdir -p logs
 
-# Configuration - ONLY LSTM EXPERIMENTS (1 seed only)
-declare -a EXPERIMENTS=("lstm_baseline" "lstm_lazimpa")
+# Configuration - ONLY TRANSFORMER EXPERIMENTS (1 seed only)
+declare -a EXPERIMENTS=("transformer_baseline" "transformer_lazimpa")
 declare -a SEEDS=(42)
 
 # Calculate which experiment and seed to run based on task ID
@@ -64,13 +64,11 @@ else
     LAZIMPA_PARAMS=""
 fi
 
-# Run the experiment - MATCHES ORIGINAL NOTEBOOK EXACTLY
-# Key parameters from original:
-#   --sender_entropy_coeff=2.0 (CRITICAL - was 0.1 in broken script)
-#   --batch_size=512 (was 32)
-#   --sender_embedding=10 (was 50)
-#   --receiver_embedding=100 (was 50)
-#   --receiver_entropy_coeff uses default 0.1 (not specified)
+# Run the experiment
+# Transformer settings adapted from LSTM:
+#   --sender_entropy_coeff=2.0 (same as LSTM to encourage exploration)
+#   --batch_size=512
+#   --embed_dim must be divisible by num_heads (256 / 8 = 32) ✓
 python -m egg.zoo.channel.train \
   --dir_save=results/${EXPERIMENT}/seed_${SEED} \
   --vocab_size=40 \
@@ -80,17 +78,22 @@ python -m egg.zoo.channel.train \
   --n_epochs=500 \
   --batch_size=512 \
   --length_cost=0.0 \
-  --sender_cell=lstm \
-  --receiver_cell=lstm \
-  --sender_hidden=250 \
-  --receiver_hidden=600 \
-  --receiver_embedding=100 \
-  --sender_embedding=10 \
+  --sender_cell=transformer \
+  --receiver_cell=transformer \
+  --sender_hidden=512 \
+  --receiver_hidden=512 \
+  --sender_embedding=256 \
+  --receiver_embedding=256 \
+  --sender_num_layers=2 \
+  --receiver_num_layers=2 \
+  --sender_num_heads=8 \
+  --receiver_num_heads=8 \
+  --causal_sender \
+  --causal_receiver \
+  --sender_generate_style=in-place \
   --batches_per_epoch=1000 \
   --lr=0.001 \
   --sender_entropy_coeff=2.0 \
-  --sender_num_layers=1 \
-  --receiver_num_layers=1 \
   --early_stopping_thr=0.99 \
   $LAZIMPA_PARAMS \
   --random_seed=${SEED} \
