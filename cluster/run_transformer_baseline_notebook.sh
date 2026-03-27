@@ -2,7 +2,7 @@
 
 #$ -M anzony.quispe@gmail.com   # Email address for job notification
 #$ -m abe                        # Send mail when job begins, ends and aborts
-#$ -pe smp 8                     # 8 CPU cores (faster data loading)
+#$ -pe smp 20                     # 8 CPU cores (faster data loading)
 #$ -q gpu@@crc_a10               # Request A10 GPUs
 #$ -l gpu_card=1                 # 1 GPU card per job
 #$ -N tf_baseline_nb             # Job name
